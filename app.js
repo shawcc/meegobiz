@@ -581,30 +581,7 @@ function renderGuide(c, h, ha) {
         </div>
 
         <div class="guide-section">
-            <div class="guide-title">2. 作用域 (Scope) 体系</div>
-            <div class="guide-box">
-                <p class="guide-text">决定了权益购买后在哪里生效：</p>
-                <ul style="padding-left:20px; color:#475569; font-size:14px;">
-                    <li><span class="tag tag-orange">WORKSPACE</span> <strong>工作区级</strong>：仅在特定的项目/空间内生效（如：甘特图、需求管理）。</li>
-                    <li><span class="tag tag-blue">TENANT</span> <strong>租户级</strong>：购买后全公司/全租户所有成员可用（如：SSO、企业品牌定制）。</li>
-                    <li><span class="tag tag-purple">GLOBAL</span> <strong>全域级 (跨工作区)</strong>：购买了某个权益后，租户下的**所有工作区**都能使用该功能（无需逐个分配）。</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="guide-section">
-            <div class="guide-title">3. 规则引擎 (Guardrails)</div>
-            <div class="guide-box">
-                <p class="guide-text">为了防止配置错误，我们引入了双层规则校验：</p>
-                <ul style="padding-left:20px; color:#475569; font-size:14px;">
-                    <li><strong>技术互斥 (Tech Mutex)</strong>：研发定义的底层冲突（如：旧版引擎不能与新版引擎共存），在配置商品时会强制拦截。</li>
-                    <li><strong>商业依赖 (Comm. Dependency)</strong>：运营定义的售卖逻辑（如：购买增值包必须先购买专业版），用于引导客户升级。</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="guide-section">
-            <div class="guide-title">4. 实体关系图谱 (Entity Relationships)</div>
+            <div class="guide-title">2. 实体关系图谱 (Entity Relationships)</div>
             <div class="guide-box">
                 <p class="guide-text">各层级对象之间的映射关系定义了系统的灵活性：</p>
                 
@@ -642,6 +619,29 @@ function renderGuide(c, h, ha) {
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="guide-section">
+            <div class="guide-title">3. 作用域 (Scope) 体系</div>
+            <div class="guide-box">
+                <p class="guide-text">决定了权益购买后在哪里生效：</p>
+                <ul style="padding-left:20px; color:#475569; font-size:14px;">
+                    <li><span class="tag tag-orange">WORKSPACE</span> <strong>工作区级</strong>：仅在特定的项目/空间内生效（如：甘特图、需求管理）。</li>
+                    <li><span class="tag tag-blue">TENANT</span> <strong>租户级</strong>：购买后全公司/全租户所有成员可用（如：SSO、企业品牌定制）。</li>
+                    <li><span class="tag tag-purple">GLOBAL</span> <strong>全域级 (跨工作区)</strong>：购买了某个权益后，租户下的**所有工作区**都能使用该功能（无需逐个分配）。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="guide-section">
+            <div class="guide-title">4. 规则引擎 (Guardrails)</div>
+            <div class="guide-box">
+                <p class="guide-text">为了防止配置错误，我们引入了双层规则校验：</p>
+                <ul style="padding-left:20px; color:#475569; font-size:14px;">
+                    <li><strong>技术互斥 (Tech Mutex)</strong>：研发定义的底层冲突（如：旧版引擎不能与新版引擎共存），在配置商品时会强制拦截。</li>
+                    <li><strong>商业依赖 (Comm. Dependency)</strong>：运营定义的售卖逻辑（如：购买增值包必须先购买专业版），用于引导客户升级。</li>
+                </ul>
             </div>
         </div>
     `;
@@ -850,7 +850,7 @@ function renderEnts(c, h, ha) {
                 <tr style="background:#f8fafc; border-bottom:1px solid #e2e8f0; color:#64748b; font-size:12px; text-transform:uppercase;">
                     <th style="padding:12px 24px; width:120px;">ID</th>
                     <th style="padding:12px 24px;">客户名称</th>
-                    <th style="padding:12px 24px;">订阅概览</th>
+                    <th style="padding:12px 24px;">订阅概览 (Subscriptions)</th>
                     <th style="padding:12px 24px; width:100px;">总席位</th>
                     <th style="padding:12px 24px; width:140px; text-align:right;">操作</th>
                 </tr>
@@ -868,28 +868,60 @@ function renderEnts(c, h, ha) {
             const activeSubs = t.subs.filter(s => s.status === 'Active');
             const totalSeats = activeSubs.reduce((acc, s) => acc + (parseInt(s.seats)||0), 0);
             
-            const subBadges = t.subs.map(s => {
+            // Group subs by Product for cleaner display
+            const grouped = {};
+            t.subs.forEach(s => {
                 const sku = skus.find(k => k.id === s.skuId);
-                const prod = sku ? products.find(p => p.id === sku.pid) : null;
-                const isOff = s.status !== 'Active';
-                const color = isOff ? '#94a3b8' : '#10b981';
-                const bg = isOff ? '#f1f5f9' : '#ecfdf5';
+                const pid = sku ? sku.pid : 'unknown';
+                if(!grouped[pid]) grouped[pid] = [];
+                grouped[pid].push({ ...s, sku });
+            });
+
+            const subListHtml = Object.keys(grouped).map(pid => {
+                const prod = products.find(p => p.id === pid);
+                const items = grouped[pid];
                 
-                // Click badge to edit specific sub
-                return `<div onclick="openSubModal('${t.id}', '${s.skuId}')" 
-                            style="display:inline-flex; align-items:center; cursor:pointer; background:${bg}; padding:2px 8px; border-radius:4px; margin-right:6px; margin-bottom:4px; border:1px solid ${isOff?'#e2e8f0':'#d1fae5'}; font-size:11px; color:${isOff?'#64748b':'#065f46'};">
-                    <span style="width:6px; height:6px; border-radius:50%; background:${color}; margin-right:4px;"></span>
-                    ${prod ? prod.code : 'unk'} · ${sku ? sku.name : s.skuId}
-                </div>`;
+                return `
+                <div style="margin-bottom:8px; border:1px solid #f1f5f9; border-radius:6px; padding:8px 12px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.02);">
+                    <div style="font-size:12px; font-weight:600; color:#475569; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                        <span style="background:#f1f5f9; width:20px; height:20px; display:flex; align-items:center; justify-content:center; border-radius:4px; font-size:12px;">${prod ? prod.icon : '?'}</span>
+                        ${prod ? prod.name : 'Unknown Product'}
+                    </div>
+                    ${items.map(item => {
+                        const isOff = item.status !== 'Active';
+                        const color = isOff ? '#94a3b8' : '#10b981';
+                        const skuName = item.sku ? item.sku.name : item.skuId;
+                        const isAddon = item.sku && item.sku.type === 'ADDON';
+                        
+                        return `
+                        <div onclick="openSubModal('${t.id}', '${item.skuId}')" 
+                             style="display:flex; align-items:center; justify-content:space-between; font-size:12px; padding:6px 0; border-top:1px dashed #f1f5f9; cursor:pointer; transition:0.1s;"
+                             onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                            
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span style="width:6px; height:6px; border-radius:50%; background:${color}; box-shadow:0 0 0 2px ${isOff?'#f1f5f9':'#ecfdf5'};"></span>
+                                <span style="font-weight:500; color:${isOff?'#94a3b8':'#334155'}">${skuName}</span>
+                                ${isAddon ? '<span style="font-size:10px; background:#fffbeb; color:#b45309; border:1px solid #fcd34d; padding:0 4px; border-radius:4px; font-weight:600;">ADDON</span>' : ''}
+                            </div>
+                            
+                            <div style="display:flex; align-items:center; gap:12px; color:#64748b; font-family:monospace; font-size:11px;">
+                                <span>${item.seats} Seats</span>
+                                <span style="background:${isOff?'#f1f5f9':'#ecfdf5'}; color:${isOff?'#64748b':'#059669'}; padding:1px 6px; border-radius:4px;">${item.status}</span>
+                            </div>
+                        </div>
+                        `;
+                    }).join('')}
+                </div>
+                `;
             }).join('');
 
             return `
-            <tr style="border-bottom:1px solid #f1f5f9; transition:0.1s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-                <td style="padding:12px 24px; font-family:monospace; color:#64748b;">${t.id}</td>
-                <td style="padding:12px 24px; font-weight:600; color:#1e293b;">${t.name}</td>
-                <td style="padding:12px 24px;">${subBadges || '<span style="color:#cbd5e1; font-size:12px;">无订阅</span>'}</td>
-                <td style="padding:12px 24px; font-weight:600;">${totalSeats}</td>
-                <td style="padding:12px 24px; text-align:right;">
+            <tr style="border-bottom:1px solid #f1f5f9; vertical-align:top; transition:0.1s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                <td style="padding:16px 24px; font-family:monospace; color:#64748b;">${t.id}</td>
+                <td style="padding:16px 24px; font-weight:600; color:#1e293b;">${t.name}</td>
+                <td style="padding:12px 24px;">${subListHtml || '<span style="color:#cbd5e1; font-size:12px;">无订阅</span>'}</td>
+                <td style="padding:16px 24px; font-weight:600;">${totalSeats}</td>
+                <td style="padding:16px 24px; text-align:right;">
                     <button class="btn btn-icon" onclick="openModal('new-t', '${t.id}')" title="编辑名称">✏️</button>
                     <button class="btn btn-icon" onclick="openAddSubModal('${t.id}')" title="增购产品">➕</button>
                 </td>
