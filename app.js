@@ -544,18 +544,38 @@ function renderDashboard(c, h, ha) {
 }
 
 function renderGuide(c, h, ha) {
-    h.innerText = '模型设计指南';
+    h.innerText = '配置指南';
     c.innerHTML = `
         <div class="guide-section">
-            <div class="guide-title">1. 核心设计理念：产研商业解耦</div>
+            <div class="guide-title">1. 核心概念与流转 (Concept Map)</div>
             <div class="guide-box">
-                <p class="guide-text">我们将“生产侧（R&D）”和“商业侧（Commercial）”进行了物理隔离。研发团队专注于开发原子化的技术特性（Features），而运营团队则通过“包装”这些特性，灵活定义出可售卖的商业能力（Capabilities）。</p>
-                <div class="guide-diagram">
-                    <div class="diagram-node"><strong>Layer 1: Feature</strong><span>技术特性 (代码实现)</span></div>
-                    <div class="diagram-arrow">➡</div>
-                    <div class="diagram-node"><strong>Layer 2: Capability</strong><span>商业能力 (售卖原子)</span></div>
-                    <div class="diagram-arrow">➡</div>
-                    <div class="diagram-node"><strong>Layer 3: SKU</strong><span>商品方案 (版本/增值包)</span></div>
+                <p class="guide-text">MeegoBiz 实现了 <strong>“产研商业解耦”</strong> 的核心理念。研发专注于技术实现，运营专注于商业包装。</p>
+                
+                <div class="concept-map">
+                    <div class="map-step">
+                        <div class="map-icon">🔧</div>
+                        <div class="map-role">研发 R&D</div>
+                        <div class="map-title">Feature</div>
+                        <div class="map-desc">原子化的技术特性<br>(代码实现、开关、埋点)</div>
+                    </div>
+                    <div class="map-step">
+                        <div class="map-icon">📦</div>
+                        <div class="map-role">运营 Ops</div>
+                        <div class="map-title">Capability</div>
+                        <div class="map-desc">商业能力定义<br>(对Feature进行包装、分类、定价属性)</div>
+                    </div>
+                    <div class="map-step">
+                        <div class="map-icon">🏷️</div>
+                        <div class="map-role">销售 Sales</div>
+                        <div class="map-title">Product & SKU</div>
+                        <div class="map-desc">售卖单元组合<br>(版本Plan、增值包Add-on、定价策略)</div>
+                    </div>
+                    <div class="map-step">
+                        <div class="map-icon">👥</div>
+                        <div class="map-role">客户 Customer</div>
+                        <div class="map-title">Tenant Entitlement</div>
+                        <div class="map-desc">权益履约与生效<br>(订阅记录、有效期、席位)</div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SaaS Commercial OS V37 - Concept Guide</title>
+    <title>MeegoBiz Commercial OS</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,34 +12,33 @@
     
     <!-- Sidebar -->
     <div class="sidebar">
-        <div class="logo-box">💠 Meego Commercial</div>
+        <div class="logo-box">💠 MeegoBiz</div>
 
+        <!-- 1. Overview -->
         <div class="nav-group">
-            <div class="nav-label">概览</div>
+            <div class="nav-label">概览 (Overview)</div>
             <div class="nav-item" id="nav-dashboard" onclick="route('dashboard')">
                 <span class="nav-icon">📊</span> 仪表盘 (Dashboard)
             </div>
         </div>
 
+        <!-- 2. Guide -->
         <div class="nav-group">
-            <div class="nav-label">指南 Guide</div>
+            <div class="nav-label">配置指南 (Guide)</div>
             <div class="nav-item active" id="nav-guide" onclick="route('guide')">
-                <span class="nav-icon">📖</span> 模型设计指南
+                <span class="nav-icon">📖</span> 配置指南
             </div>
         </div>
 
+        <!-- 3. Product Configuration -->
         <div class="nav-group">
-            <div class="nav-label">核心资产</div>
+            <div class="nav-label">产品定义 (Product Def)</div>
             <div class="nav-item" id="nav-features" onclick="route('features')">
                 <span class="nav-icon">🔧</span> 产品功能 (Features)
             </div>
             <div class="nav-item" id="nav-caps" onclick="route('caps')">
                 <span class="nav-icon">📦</span> 商业能力 (Capabilities)
             </div>
-        </div>
-
-        <div class="nav-group">
-            <div class="nav-label">商业配置</div>
             <div class="nav-item" id="nav-products" onclick="route('products')">
                 <span class="nav-icon">🏷️</span> 产品管理 (Products)
             </div>
@@ -48,8 +47,9 @@
             </div>
         </div>
         
+        <!-- 4. Tenant Operations -->
         <div class="nav-group">
-            <div class="nav-label">运营履约</div>
+            <div class="nav-label">租户运营 (Operations)</div>
             <div class="nav-item" id="nav-ents" onclick="route('ents')">
                 <span class="nav-icon">👥</span> 客户权益 (Entitlements)
             </div>
@@ -78,7 +78,7 @@
     <!-- Main -->
     <div class="main">
         <div class="header">
-            <div class="page-title" id="page-title">商业化模型设计指南</div>
+            <div class="page-title" id="page-title">配置指南</div>
             <div id="page-actions"></div>
         </div>
         <div class="content" id="main-content">

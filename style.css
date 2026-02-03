@@ -107,11 +107,22 @@ tr:last-child td { border-bottom: none; }
 .guide-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; position: relative; }
 .guide-text { font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 12px; }
 
-.guide-diagram { display: flex; gap: 16px; margin: 24px 0; overflow-x: auto; padding: 8px 0; align-items: stretch; }
-.diagram-step { flex: 1; background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; min-width: 180px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
-.diagram-step strong { display: block; color: var(--primary); margin-bottom: 6px; font-size: 15px; }
-.diagram-step span { font-size: 12px; color: #64748b; line-height: 1.4; }
-.diagram-arrow { display: flex; align-items: center; color: #94a3b8; font-size: 24px; font-weight: bold; }
+/* New Concept Map Styles */
+.concept-map { display: flex; align-items: stretch; gap: 16px; margin: 32px 0; overflow-x: auto; padding-bottom: 10px; }
+.map-step { 
+    flex: 1; background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; 
+    min-width: 200px; display: flex; flex-direction: column; align-items: center; text-align: center;
+    position: relative; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.map-step::after {
+    content: '➜'; position: absolute; right: -20px; top: 50%; transform: translateY(-50%);
+    color: #cbd5e1; font-size: 20px; font-weight: bold;
+}
+.map-step:last-child::after { display: none; }
+.map-icon { font-size: 32px; margin-bottom: 12px; }
+.map-title { font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+.map-role { font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: 600; background: #f1f5f9; padding: 2px 8px; border-radius: 12px; margin-bottom: 12px; }
+.map-desc { font-size: 12px; color: #64748b; line-height: 1.4; }
 
 .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
 .concept-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; }
