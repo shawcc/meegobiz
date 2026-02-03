@@ -1,41 +1,29 @@
-// ================== 0. API CONFIG (DeepSeek) ==================
-
-const DEEPSEEK_API_KEY = "sk-d4c05ae9e12248a2833e98e121120e9a";
-const API_URL = "https://api.deepseek.com/chat/completions";
+// ================== 0. API CONFIG (Serverless Proxy) ==================
 
 async function callAI(prompt) {
-    if (!DEEPSEEK_API_KEY) {
-        alert("API Key 未配置");
-        return null;
-    }
-
     try {
-        const response = await fetch(API_URL, {
+        // Call local Vercel Serverless Function (hides Key from browser)
+        const response = await fetch("/api/chat", {
             method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${DEEPSEEK_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: "deepseek-chat",
-                messages: [
-                    { role: "system", content: "You are a helpful SaaS product manager assistant." },
-                    { role: "user", content: prompt }
-                ],
-                temperature: 0.7
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt })
         });
 
         if (!response.ok) {
             const err = await response.json();
-            throw new Error(err.error?.message || "API request failed");
+            throw new Error(err.error || "Request failed");
         }
 
         const data = await response.json();
-        return data.choices[0].message.content;
+        return data.content;
     } catch (error) {
         console.error("AI Error:", error);
-        alert("AI 调用失败: " + error.message);
+        // Fallback or alert
+        if(error.message.includes("Key not configured")) {
+            alert("请在 Vercel 后台配置 DEEPSEEK_API_KEY 环境变量");
+        } else {
+            alert("AI 调用失败: " + error.message);
+        }
         return null;
     }
 }
