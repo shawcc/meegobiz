@@ -467,14 +467,17 @@ function getPriceDisplay(sku) {
 function renderDashboard(c, h, ha) {
     h.innerText = '仪表盘 (Dashboard)';
     
-    // Calculate Stats
+    // --- 1. Business Metrics (Runtime) ---
     const totalTenants = tenants.length;
     let totalSeats = 0;
     let totalSubs = 0;
     let estMRR = 0;
-    
     const prodCounts = {};
     products.forEach(p => prodCounts[p.id] = 0);
+
+    // Track capability usage count based on active subs
+    const capUsage = {}; 
+    capabilities.forEach(c => capUsage[c.id] = 0);
 
     tenants.forEach(t => {
         t.subs.forEach(sub => {
@@ -496,49 +499,169 @@ function renderDashboard(c, h, ha) {
                         if(p.mode === 'FLAT_YR') estMRR += price / 12;
                     });
                 }
+
+                // Cap Usage
+                if(sku.ents) {
+                    Object.keys(sku.ents).forEach(cid => {
+                        if(capUsage[cid] !== undefined) capUsage[cid]++;
+                    });
+                }
             }
         });
     });
 
+    // Sort Top Capabilities
+    const topCaps = Object.keys(capUsage)
+        .map(cid => ({ id: cid, count: capUsage[cid], obj: capabilities.find(x=>x.id===cid) }))
+        .sort((a,b) => b.count - a.count)
+        .slice(0, 5);
+
+
+    // --- 2. Configuration Metrics (Design Time) ---
+    const totalFeats = features.length;
+    const totalCaps = capabilities.length;
+    const totalPlans = skus.filter(s=>s.type==='PLAN').length;
+    const totalAddons = skus.filter(s=>s.type==='ADDON').length;
+    const totalRules = rules.length;
+
     c.innerHTML = `
-        <div class="concept-grid" style="margin-bottom:30px;">
-            <div class="concept-card" style="border-top:4px solid #3b82f6;">
-                <div style="font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Total Tenants</div>
-                <div style="font-size:32px; font-weight:700; margin-top:8px;">${totalTenants}</div>
+        <!-- Section 1: Business Overview -->
+        <div style="margin-bottom:32px;">
+            <div style="font-size:14px; font-weight:700; color:#475569; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                <span>🚀 商业运营大盘 (Business Runtime)</span>
+                <div style="flex:1; height:1px; background:#e2e8f0;"></div>
             </div>
-            <div class="concept-card" style="border-top:4px solid #10b981;">
-                <div style="font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Active Seats</div>
-                <div style="font-size:32px; font-weight:700; margin-top:8px;">${totalSeats}</div>
-            </div>
-            <div class="concept-card" style="border-top:4px solid #8b5cf6;">
-                <div style="font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Est. MRR</div>
-                <div style="font-size:32px; font-weight:700; margin-top:8px;">¥${estMRR.toFixed(0)}</div>
-            </div>
-            <div class="concept-card" style="border-top:4px solid #f59e0b;">
-                <div style="font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Active Subs</div>
-                <div style="font-size:32px; font-weight:700; margin-top:8px;">${totalSubs}</div>
+            <div class="concept-grid">
+                <div class="concept-card" style="border-top:4px solid #3b82f6;">
+                    <div style="font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Total Tenants</div>
+                    <div style="font-size:32px; font-weight:700; margin-top:8px; color:#1e293b;">${totalTenants}</div>
+                </div>
+                <div class="concept-card" style="border-top:4px solid #10b981;">
+                    <div style="font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Active Seats</div>
+                    <div style="font-size:32px; font-weight:700; margin-top:8px; color:#1e293b;">${totalSeats}</div>
+                </div>
+                <div class="concept-card" style="border-top:4px solid #8b5cf6;">
+                    <div style="font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Est. MRR</div>
+                    <div style="font-size:32px; font-weight:700; margin-top:8px; color:#1e293b;">¥${estMRR.toFixed(0)}</div>
+                </div>
+                <div class="concept-card" style="border-top:4px solid #f59e0b;">
+                    <div style="font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase;">Active Subs</div>
+                    <div style="font-size:32px; font-weight:700; margin-top:8px; color:#1e293b;">${totalSubs}</div>
+                </div>
             </div>
         </div>
 
-        <h3>产品分布</h3>
-        <div class="card" style="padding:24px;">
-            <div style="display:flex; gap:20px; flex-wrap:wrap;">
-                ${products.map(p => {
-                    const count = prodCounts[p.id];
-                    const pct = totalSubs > 0 ? Math.round((count / totalSubs) * 100) : 0;
-                    return `
-                    <div style="flex:1; min-width:150px; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
-                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-                            <span style="background:#eff6ff; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:6px;">${p.icon}</span>
-                            <span style="font-weight:600;">${p.name}</span>
-                        </div>
-                        <div style="font-size:24px; font-weight:700;">${count} <span style="font-size:13px; color:#94a3b8; font-weight:400;">subs</span></div>
-                        <div style="width:100%; height:4px; background:#f1f5f9; border-radius:2px; margin-top:8px; overflow:hidden;">
-                            <div style="width:${pct}%; height:100%; background:var(--primary);"></div>
-                        </div>
-                    </div>`;
-                }).join('')}
+        <!-- Section 2: Configuration Complexity -->
+        <div style="margin-bottom:32px;">
+            <div style="font-size:14px; font-weight:700; color:#475569; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                <span>🏗️ 配置资产规模 (Configuration Assets)</span>
+                <div style="flex:1; height:1px; background:#e2e8f0;"></div>
             </div>
+            
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:20px;">
+                <!-- R&D Layer -->
+                <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:start;">
+                        <div>
+                            <div style="font-size:24px; font-weight:700; color:#1e293b;">${totalFeats}</div>
+                            <div style="font-size:12px; color:#64748b;">Features (Tech)</div>
+                        </div>
+                        <span style="font-size:20px;">🔧</span>
+                    </div>
+                </div>
+
+                <!-- Commercial Layer -->
+                <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:start;">
+                        <div>
+                            <div style="font-size:24px; font-weight:700; color:#1e293b;">${totalCaps}</div>
+                            <div style="font-size:12px; color:#64748b;">Capabilities (Biz)</div>
+                        </div>
+                        <span style="font-size:20px;">📦</span>
+                    </div>
+                    <div style="margin-top:12px; padding-top:12px; border-top:1px dashed #e2e8f0; font-size:11px; color:#64748b;">
+                        包含 ${capabilities.filter(c=>c.type==='INT').length} 个数值型能力
+                    </div>
+                </div>
+
+                <!-- Sales Layer -->
+                <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:start;">
+                        <div>
+                            <div style="font-size:24px; font-weight:700; color:#1e293b;">${totalPlans + totalAddons}</div>
+                            <div style="font-size:12px; color:#64748b;">SKUs (Saleable)</div>
+                        </div>
+                        <span style="font-size:20px;">🏷️</span>
+                    </div>
+                    <div style="margin-top:12px; padding-top:12px; border-top:1px dashed #e2e8f0; font-size:11px; color:#64748b;">
+                        ${totalPlans} Plans, ${totalAddons} Add-ons
+                    </div>
+                </div>
+                
+                <!-- Rules Layer -->
+                <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:start;">
+                        <div>
+                            <div style="font-size:24px; font-weight:700; color:#1e293b;">${totalRules}</div>
+                            <div style="font-size:12px; color:#64748b;">Active Rules</div>
+                        </div>
+                        <span style="font-size:20px;">🛡️</span>
+                    </div>
+                    <div style="margin-top:12px; padding-top:12px; border-top:1px dashed #e2e8f0; font-size:11px; color:#64748b;">
+                        ${rules.filter(r=>r.type==='MUTEX').length} Mutex, ${rules.filter(r=>r.type==='DEPEND').length} Dependencies
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Analysis Charts -->
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:24px;">
+            
+            <!-- Left: Product Distribution -->
+            <div class="card" style="margin-bottom:0; display:flex; flex-direction:column;">
+                <div class="card-header">产品订阅分布 (By Product)</div>
+                <div class="card-body" style="flex:1;">
+                    <div style="display:flex; flex-direction:column; gap:16px;">
+                        ${products.map(p => {
+                            const count = prodCounts[p.id];
+                            const pct = totalSubs > 0 ? Math.round((count / totalSubs) * 100) : 0;
+                            return `
+                            <div>
+                                <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;">
+                                    <div style="display:flex; align-items:center; gap:6px;">
+                                        <span>${p.icon}</span> <span>${p.name}</span>
+                                    </div>
+                                    <div style="font-weight:600;">${count} <span style="font-weight:400; color:#94a3b8; font-size:12px;">(${pct}%)</span></div>
+                                </div>
+                                <div style="width:100%; height:8px; background:#f1f5f9; border-radius:4px; overflow:hidden;">
+                                    <div style="width:${pct}%; height:100%; background:var(--primary);"></div>
+                                </div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Top Capabilities -->
+            <div class="card" style="margin-bottom:0; display:flex; flex-direction:column;">
+                <div class="card-header">🔥 热门能力 (Top Capabilities)</div>
+                <div class="card-body" style="flex:1;">
+                    <div style="font-size:12px; color:#64748b; margin-bottom:12px;">被激活租户覆盖最多的商业能力</div>
+                    ${topCaps.map((item, idx) => `
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding-bottom:12px; border-bottom:1px dashed #f1f5f9;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div style="width:20px; height:20px; background:${idx===0?'#fef9c3':'#f1f5f9'}; color:${idx===0?'#b45309':'#64748b'}; border-radius:50%; font-size:11px; display:flex; align-items:center; justify-content:center; font-weight:700;">${idx+1}</div>
+                                <div>
+                                    <div style="font-size:13px; font-weight:600; color:#334155;">${item.obj ? item.obj.name : item.id}</div>
+                                    <div style="font-size:10px; color:#94a3b8;">${item.obj ? item.obj.scope : ''}</div>
+                                </div>
+                            </div>
+                            <div style="font-size:13px; font-weight:700; color:#059669;">${item.count}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
         </div>
     `;
 }
