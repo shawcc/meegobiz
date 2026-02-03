@@ -389,6 +389,12 @@ let editSubRef = null;
 let drawerAddonId = null;
 let ruleTab = 'COMMERCIAL';
 
+// Tenant View State
+let tenantSearch = '';
+let tenantPage = 1;
+const TENANT_PAGE_SIZE = 12;
+
+
 function route(view) {
     currView = view;
     activeProdId = null;
@@ -748,66 +754,120 @@ function renderSkuStudio(c, h, ha) {
 
 function renderEnts(c, h, ha) {
     h.innerText = '客户权益 (Entitlements)';
-    ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('new-t')">+ 签约新客户</button>`;
+    
+    // Header Actions: Search + Add
+    ha.style.display = 'flex';
+    ha.style.gap = '10px';
+    ha.innerHTML = `
+        <div style="position:relative;">
+            <input placeholder="🔍 搜索客户..." value="${tenantSearch}" oninput="searchTenants(this.value)" class="form-input" style="width:240px; padding-left:12px;">
+        </div>
+        <button class="btn btn-primary" onclick="openModal('new-t')">+ 签约新客户</button>
+    `;
 
-    let html = `<div style="display:flex; flex-direction:column; gap:20px;">`;
-    tenants.forEach(t => {
-        const groupedSubs = {};
-        t.subs.forEach(sub => {
-            const sku = skus.find(s => s.id === sub.skuId);
-            const pid = sku ? sku.pid : 'unknown';
-            if(!groupedSubs[pid]) groupedSubs[pid] = [];
-            groupedSubs[pid].push({ ...sub, skuName: sku ? sku.name : sub.skuId, skuType: sku ? sku.type : 'PLAN' });
-        });
+    // 1. Filter
+    const filtered = tenants.filter(t => 
+        t.name.toLowerCase().includes(tenantSearch.toLowerCase()) || 
+        t.id.toLowerCase().includes(tenantSearch.toLowerCase())
+    );
+    
+    // 2. Pagination
+    const total = filtered.length;
+    const maxPage = Math.ceil(total / TENANT_PAGE_SIZE) || 1;
+    if(tenantPage > maxPage) tenantPage = maxPage;
+    if(tenantPage < 1) tenantPage = 1;
+    
+    const start = (tenantPage - 1) * TENANT_PAGE_SIZE;
+    const pageData = filtered.slice(start, start + TENANT_PAGE_SIZE);
 
-        html += `
-        <div class="tenant-card">
-            <div class="tenant-header">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <div style="font-weight:600; font-size:16px;">${t.name}</div>
-                    <button class="btn btn-icon" onclick="openModal('new-t', '${t.id}')">✏️</button>
-                    <div style="font-size:12px; color:#64748b;">ID: ${t.id}</div>
-                </div>
-                <div style="display:flex; align-items:center; gap:16px;">
-                    <div class="tag tag-blue">${t.subs.length} Active Subscriptions</div>
-                    <button class="btn btn-primary" style="padding:4px 8px; font-size:12px;" onclick="openAddSubModal('${t.id}')">+ 增购产品</button>
-                </div>
+    // 3. Render Table
+    let html = `
+    <div class="card" style="padding:0; overflow:hidden; border:1px solid #e2e8f0; border-radius:8px;">
+        <table style="width:100%; text-align:left;">
+            <thead>
+                <tr style="background:#f8fafc; border-bottom:1px solid #e2e8f0; color:#64748b; font-size:12px; text-transform:uppercase;">
+                    <th style="padding:12px 24px; width:120px;">ID</th>
+                    <th style="padding:12px 24px;">客户名称</th>
+                    <th style="padding:12px 24px;">订阅概览</th>
+                    <th style="padding:12px 24px; width:100px;">总席位</th>
+                    <th style="padding:12px 24px; width:140px; text-align:right;">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    if(pageData.length === 0) {
+        html += `<tr><td colspan="5" style="text-align:center; padding:40px; color:#94a3b8;">
+            <div>📭 未找到匹配客户</div>
+        </td></tr>`;
+    } else {
+        html += pageData.map(t => {
+            // Summary logic
+            const activeSubs = t.subs.filter(s => s.status === 'Active');
+            const totalSeats = activeSubs.reduce((acc, s) => acc + (parseInt(s.seats)||0), 0);
+            
+            const subBadges = t.subs.map(s => {
+                const sku = skus.find(k => k.id === s.skuId);
+                const prod = sku ? products.find(p => p.id === sku.pid) : null;
+                const isOff = s.status !== 'Active';
+                const color = isOff ? '#94a3b8' : '#10b981';
+                const bg = isOff ? '#f1f5f9' : '#ecfdf5';
+                
+                // Click badge to edit specific sub
+                return `<div onclick="openSubModal('${t.id}', '${s.skuId}')" 
+                            style="display:inline-flex; align-items:center; cursor:pointer; background:${bg}; padding:2px 8px; border-radius:4px; margin-right:6px; margin-bottom:4px; border:1px solid ${isOff?'#e2e8f0':'#d1fae5'}; font-size:11px; color:${isOff?'#64748b':'#065f46'};">
+                    <span style="width:6px; height:6px; border-radius:50%; background:${color}; margin-right:4px;"></span>
+                    ${prod ? prod.code : 'unk'} · ${sku ? sku.name : s.skuId}
+                </div>`;
+            }).join('');
+
+            return `
+            <tr style="border-bottom:1px solid #f1f5f9; transition:0.1s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                <td style="padding:12px 24px; font-family:monospace; color:#64748b;">${t.id}</td>
+                <td style="padding:12px 24px; font-weight:600; color:#1e293b;">${t.name}</td>
+                <td style="padding:12px 24px;">${subBadges || '<span style="color:#cbd5e1; font-size:12px;">无订阅</span>'}</td>
+                <td style="padding:12px 24px; font-weight:600;">${totalSeats}</td>
+                <td style="padding:12px 24px; text-align:right;">
+                    <button class="btn btn-icon" onclick="openModal('new-t', '${t.id}')" title="编辑名称">✏️</button>
+                    <button class="btn btn-icon" onclick="openAddSubModal('${t.id}')" title="增购产品">➕</button>
+                </td>
+            </tr>
+            `;
+        }).join('');
+    }
+
+    html += `
+            </tbody>
+        </table>
+        
+        <!-- Pagination Footer -->
+        <div style="padding:12px 24px; background:#f8fafc; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-size:12px; color:#64748b;">
+                显示 ${total>0 ? start+1 : 0} - ${Math.min(start+TENANT_PAGE_SIZE, total)} / 共 ${total} 条
             </div>
-            <div class="tenant-body">
-                ${Object.keys(groupedSubs).map(pid => {
-                    const prod = products.find(p => p.id === pid);
-                    return `
-                    <div class="sub-group">
-                        <div class="sub-group-header">
-                            <span style="background:#eff6ff; color:#2563eb; width:20px; height:20px; display:flex; align-items:center; justify-content:center; border-radius:4px;">${prod ? prod.icon : '?'}</span>
-                            ${prod ? prod.name : 'Unknown Product'}
-                        </div>
-                        ${groupedSubs[pid].map(sub => `
-                            <div class="sub-row">
-                                <div>
-                                    <div class="sub-name">${sub.skuName}</div>
-                                    <div class="sub-meta">
-                                        <span class="tag ${sub.skuType==='PLAN'?'tag-blue':'tag-green'}">${sub.skuType}</span>
-                                        <span>Until: ${sub.end}</span>
-                                    </div>
-                                </div>
-                                <div style="display:flex; align-items:center; gap:24px;">
-                                    <div style="text-align:right;">
-                                        <div style="font-weight:600; font-size:14px;">${sub.seats} Seats</div>
-                                        <div class="tag ${sub.status==='Active'?'tag-green':'tag-red'}">${sub.status}</div>
-                                    </div>
-                                    <button class="btn btn-icon" onclick="openSubModal('${t.id}', '${sub.skuId}')">✏️</button>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>`;
-                }).join('')}
+            <div style="display:flex; gap:8px;">
+                <button class="btn btn-outline" style="padding:4px 12px; font-size:12px;" ${tenantPage===1?'disabled':''} onclick="changeTenantPage(-1)">Previous</button>
+                <div style="font-size:12px; display:flex; align-items:center; color:#64748b;">Page ${tenantPage}</div>
+                <button class="btn btn-outline" style="padding:4px 12px; font-size:12px;" ${tenantPage===maxPage?'disabled':''} onclick="changeTenantPage(1)">Next</button>
             </div>
-        </div>`;
-    });
-    html += `</div>`;
+        </div>
+    </div>
+    `;
+
     c.innerHTML = html;
 }
+
+function searchTenants(val) {
+    tenantSearch = val;
+    tenantPage = 1;
+    render();
+}
+
+function changeTenantPage(delta) {
+    tenantPage += delta;
+    render();
+}
+
 
 // ================== 4. LOGIC & MUTEX ==================
 

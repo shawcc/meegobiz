@@ -29,10 +29,7 @@ body {
 }
 
 @media (min-width: 1200px) {
-    .app-window {
-        width: 1600px; height: 950px; border-radius: 12px;
-        box-shadow: 0 30px 60px rgba(0,0,0,0.3);
-    }
+    /* Full width optimization */
 }
 
 /* --- Sidebar --- */
