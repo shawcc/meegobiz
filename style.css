@@ -185,6 +185,77 @@ th:hover .sku-actions { visibility: visible; }
 .rule-tab { padding: 16px 0; font-size: 14px; font-weight: 500; color: var(--text-sub); cursor: pointer; border-bottom: 2px solid transparent; }
 .rule-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
 
+/* Custom Multi-select Dropdown */
+.multiselect-container {
+    position: relative;
+    width: 100%;
+}
+.multiselect-trigger {
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 8px 12px;
+    background: #fff;
+    cursor: pointer;
+    min-height: 38px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+}
+.multiselect-trigger:after {
+    content: '▼';
+    font-size: 10px;
+    color: #64748b;
+    margin-left: auto;
+}
+.multiselect-tag {
+    background: #e2e8f0;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.multiselect-tag span {
+    cursor: pointer;
+    font-weight: bold;
+    color: #64748b;
+}
+.multiselect-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    margin-top: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+.multiselect-options.show {
+    display: block;
+}
+.multiselect-option {
+    padding: 8px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.multiselect-option:hover {
+    background: #f1f5f9;
+}
+.multiselect-option input[type="checkbox"] {
+    margin: 0;
+    width: 16px;
+    height: 16px;
+}
+
 /* Modals & Drawers */
 .mask { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.5); z-index: 100; display: none; justify-content: center; align-items: center; }
 .modal { background: white; width: 550px; border-radius: 8px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); overflow: hidden; }

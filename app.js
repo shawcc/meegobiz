@@ -1297,6 +1297,76 @@ function toggleEnt(sid, cid, type) {
     saveData(); render();
 }
 
+// --- Multiselect Helper Functions ---
+function initMultiselect(containerId, options, selectedValues, onChange) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = `
+        <div class="multiselect-container">
+            <div class="multiselect-trigger" onclick="toggleMultiselect('${containerId}')">
+                <span class="placeholder" style="color:#94a3b8">选择 Feature...</span>
+            </div>
+            <div class="multiselect-options">
+                ${options.map(opt => `
+                    <div class="multiselect-option" onclick="toggleOption('${containerId}', '${opt.value}')">
+                        <input type="checkbox" value="${opt.value}" ${selectedValues.includes(opt.value) ? 'checked' : ''}>
+                        <span>${opt.label}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    updateMultiselectDisplay(containerId, options);
+    
+    // Close when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!container.contains(e.target)) {
+            container.querySelector('.multiselect-options').classList.remove('show');
+        }
+    });
+}
+
+function toggleMultiselect(id) {
+    const opts = document.querySelector(`#${id} .multiselect-options`);
+    opts.classList.toggle('show');
+}
+
+function toggleOption(containerId, value) {
+    const container = document.getElementById(containerId);
+    const cb = container.querySelector(`input[value="${value}"]`);
+    cb.checked = !cb.checked;
+    
+    // Update display
+    const options = Array.from(container.querySelectorAll('.multiselect-option')).map(opt => ({
+        value: opt.querySelector('input').value,
+        label: opt.querySelector('span').innerText
+    }));
+    updateMultiselectDisplay(containerId, options);
+}
+
+function updateMultiselectDisplay(containerId, options) {
+    const container = document.getElementById(containerId);
+    const trigger = container.querySelector('.multiselect-trigger');
+    const checkedBoxes = container.querySelectorAll('input:checked');
+    const selectedValues = Array.from(checkedBoxes).map(cb => cb.value);
+    
+    if (selectedValues.length === 0) {
+        trigger.innerHTML = `<span class="placeholder" style="color:#94a3b8">选择 Feature...</span>`;
+    } else {
+        trigger.innerHTML = selectedValues.map(val => {
+            const label = options.find(o => o.value === val)?.label || val;
+            return `<div class="multiselect-tag">${label} <span onclick="event.stopPropagation(); toggleOption('${containerId}', '${val}')">×</span></div>`;
+        }).join('');
+    }
+}
+
+function getMultiselectValues(containerId) {
+    const container = document.getElementById(containerId);
+    const checkedBoxes = container.querySelectorAll('input:checked');
+    return Array.from(checkedBoxes).map(cb => cb.value);
+}
+
+// --- End Multiselect Helpers ---
+
 // ================== 5. MODAL LOGIC (FULL EDIT SUPPORT) ==================
 
 // V33: Dynamic Pricing Logic
@@ -1334,18 +1404,12 @@ function openModal(type, id = null) {
         // Populate Features (Multiselect) - REBUILD SELECT ELEMENT TO ENSURE CLEAN STATE
         const parent = document.getElementById('cap-feat').parentElement;
         parent.innerHTML = `<label class="form-label">绑定底层 Feature (支持多选)</label>
-                            <select class="form-select" id="cap-feat" multiple size="5" style="height: 120px; padding: 4px;"></select>
-                            <div style="font-size:11px; color:#64748b; margin-top:4px;">按住 Ctrl (Windows) 或 Cmd (Mac) 可多选</div>`;
+                            <div id="cap-feat-multiselect"></div>`; // Container for custom multiselect
         
-        const fSelect = document.getElementById('cap-feat');
-        fSelect.innerHTML = features.map(f => {
-            // Support legacy single 'fid' or new 'fids' array
-            let isSelected = false;
-            if(item.fids && Array.isArray(item.fids)) isSelected = item.fids.includes(f.id);
-            else if(item.fid && item.fid === f.id) isSelected = true;
-            
-            return `<option value="${f.id}" ${isSelected?'selected':''}>${f.name}</option>`;
-        }).join('');
+        const options = features.map(f => ({ value: f.id, label: f.name }));
+        const selected = (item.fids && Array.isArray(item.fids)) ? item.fids : (item.fid ? [item.fid] : []);
+        
+        initMultiselect('cap-feat-multiselect', options, selected);
         
         // V30: Type Select
         const typeSel = document.getElementById('cap-type');
@@ -1494,11 +1558,7 @@ function saveCap() {
     const type = document.getElementById('cap-type').value;
     
     // Collect multiselect features
-    const fSelect = document.getElementById('cap-feat');
-    const fids = [];
-    for(let i=0; i<fSelect.options.length; i++) {
-        if(fSelect.options[i].selected) fids.push(fSelect.options[i].value);
-    }
+    const fids = getMultiselectValues('cap-feat-multiselect');
     
     // V33: Collect Category Map
     const categoryMap = {};
