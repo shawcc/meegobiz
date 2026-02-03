@@ -1416,7 +1416,10 @@ function openModal(type, id = null) {
         const options = features.map(f => ({ value: f.id, label: f.name }));
         const selected = (item.fids && Array.isArray(item.fids)) ? item.fids : (item.fid ? [item.fid] : []);
         
-        initMultiselect('cap-feat-multiselect', options, selected);
+        // Add timeout to ensure DOM is ready
+        setTimeout(() => {
+            initMultiselect('cap-feat-multiselect', options, selected);
+        }, 0);
         
         // V30: Type Select
         const typeSel = document.getElementById('cap-type');
