@@ -396,6 +396,12 @@ const TENANT_PAGE_SIZE = 12;
 
 
 function route(view) {
+    // Clean up UI state
+    closeModals();
+    if(document.getElementById('drawer').classList.contains('open')) {
+        closeDrawer();
+    }
+
     currView = view;
     activeProdId = null;
     updateNav();
