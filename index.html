@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS Commercial OS V37 - Concept Guide</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app-window">
+    
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo-box">💠 Meego Commercial</div>
+
+        <div class="nav-group">
+            <div class="nav-label">概览</div>
+            <div class="nav-item" id="nav-dashboard" onclick="route('dashboard')">
+                <span class="nav-icon">📊</span> 仪表盘 (Dashboard)
+            </div>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-label">指南 Guide</div>
+            <div class="nav-item active" id="nav-guide" onclick="route('guide')">
+                <span class="nav-icon">📖</span> 模型设计指南
+            </div>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-label">核心资产</div>
+            <div class="nav-item" id="nav-features" onclick="route('features')">
+                <span class="nav-icon">🔧</span> 产品功能 (Features)
+            </div>
+            <div class="nav-item" id="nav-caps" onclick="route('caps')">
+                <span class="nav-icon">📦</span> 商业能力 (Capabilities)
+            </div>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-label">商业配置</div>
+            <div class="nav-item" id="nav-products" onclick="route('products')">
+                <span class="nav-icon">🏷️</span> 产品管理 (Products)
+            </div>
+            <div class="nav-item" id="nav-rules" onclick="route('rules')">
+                <span class="nav-icon">🛡️</span> 规则引擎 (Rules)
+            </div>
+        </div>
+        
+        <div class="nav-group">
+            <div class="nav-label">运营履约</div>
+            <div class="nav-item" id="nav-ents" onclick="route('ents')">
+                <span class="nav-icon">👥</span> 客户权益 (Entitlements)
+            </div>
+        </div>
+
+        <!-- Import/Export/Reset/Settings -->
+        <div class="sidebar-footer">
+            <div class="sidebar-btn btn-export" onclick="exportData()">
+                📤 导出配置
+            </div>
+            <div class="sidebar-btn btn-import" onclick="document.getElementById('file-input').click()">
+                📥 导入配置
+            </div>
+            <input type="file" id="file-input" style="display:none" accept=".json" onchange="importData(this)">
+            
+            <div class="sidebar-btn btn-settings" onclick="openModal('settings')">
+                ⚙️ 设置 API Key
+            </div>
+            
+            <div class="sidebar-btn btn-reset" onclick="resetData()">
+                🗑️ 重置演示数据
+            </div>
+        </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+        <div class="header">
+            <div class="page-title" id="page-title">商业化模型设计指南</div>
+            <div id="page-actions"></div>
+        </div>
+        <div class="content" id="main-content">
+            <!-- Dynamic Content -->
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODALS ================= -->
+
+<!-- Settings Modal -->
+<div class="mask" id="modal-settings">
+    <div class="modal">
+        <div class="modal-head"><span>系统设置</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Gemini API Key</label>
+                <input type="password" class="form-input" id="settings-api-key" placeholder="AIzaSy...">
+                <div style="font-size:12px; color:#94a3b8; margin-top:4px;">
+                    您的 Key 仅存储在本地浏览器中，不会上传到服务器。
+                </div>
+            </div>
+        </div>
+        <div class="modal-foot"><button class="btn btn-primary" onclick="saveSettings()">保存配置</button></div>
+    </div>
+</div>
+
+<!-- 1. Feature Modal -->
+<div class="mask" id="modal-feature">
+    <div class="modal">
+        <div class="modal-head"><span id="feat-modal-title">注册 Feature</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
+        <div class="modal-body">
+            <div class="form-group"><label class="form-label">技术 ID (Key)</label><input class="form-input" id="feat-id" placeholder="feat_key"></div>
+            <div class="form-group"><label class="form-label">名称</label><input class="form-input" id="feat-name"></div>
+            <div class="form-group"><label class="form-label">技术负责人</label><input class="form-input" id="feat-owner"></div>
+        </div>
+        <div class="modal-foot"><button class="btn btn-primary" onclick="saveFeature()">保存</button></div>
+    </div>
+</div>
+
+<!-- AI Feature Gen Modal -->
+<div class="mask" id="modal-ai-feature">
+    <div class="modal">
+        <div class="modal-head"><span>✨ AI 智能生成资产</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">输入业务领域 (例如: "WMS 仓储管理", "CRM 销售")</label>
+                <input class="form-input" id="ai-feat-topic" placeholder="请输入业务主题...">
+            </div>
+            <div class="form-group" id="ai-feat-loading" style="display:none; color:var(--primary);">
+                🤖 AI 正在分析并生成技术特性，请稍候...
+            </div>
+        </div>
+        <div class="modal-foot"><button class="btn btn-ai" id="btn-ai-gen" onclick="generateAiFeatures()">开始生成</button></div>
+    </div>
+</div>
+
+<!-- 2. Capability Modal -->
+<div class="mask" id="modal-cap">
+    <div class="modal">
+        <div class="modal-head"><span id="cap-modal-title">定义 Capability</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
+        <div class="modal-body">
+            <div class="form-group"><label class="form-label">能力名称</label><input class="form-input" id="cap-name"></div>
+            <div style="display:flex; gap:10px;">
+                <div class="form-group" style="flex:1">
+                    <label class="form-label">作用域</label>
+                    <select class="form-select" id="cap-scope">
+                        <option value="WORKSPACE">工作区级 (Workspace)</option>
+                        <option value="TENANT">租户级 (Tenant)</option>
+                        <option value="GLOBAL">全域级 (Global)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex:1">
+                    <label class="form-label">值类型</label>
+                    <select class="form-select" id="cap-type">
+                        <option value="BOOL">开关型 (On/Off)</option>
+                        <option value="INT">数值型 (Quota)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group"><label class="form-label">绑定底层 Feature</label><select class="form-select" id="cap-feat"></select></div>
+            
+            <div class="form-group">
+                <label class="form-label">适用产品线与分类 (勾选产品并指定分类)</label>
+                <div class="multi-check-container" id="cap-prods-container">
+                    <!-- Checkboxes injected by JS with category input -->
+                </div>
+            </div>
+        </div>
+        <div class="modal-foot"><button class="btn btn-primary" onclick="saveCap()">保存</button></div>
+    </div>
+</div>
+
+<!-- 3. Rule Modal -->
+<div class="mask" id="modal-rule">
+    <div class="modal">
+        <div class="modal-head"><span id="rule-modal-title">新建规则</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
+        <div class="modal-body">
+            <div class="form-group"><label class="form-label">规则层级</label>
+                <select class="form-select" id="rule-level" onchange="updateRuleModalUI()">
+                    <option value="COMMERCIAL">商业关系规则 (Product/SKU)</option>
+                    <option value="TECHNICAL">技术规则 (Feature/Cap)</option>
+                </select>
+            </div>
+            <div class="form-group"><label class="form-label">类型</label>
+                <select class="form-select" id="rule-type">
+                    <option value="DEPEND">依赖 (Prerequisite)</option>
+                    <option value="MUTEX">互斥 (Exclusion)</option>
+                </select>
+            </div>
+            <div class="form-group"><label class="form-label">描述</label><input class="form-input" id="rule-desc"></div>
+            
+            <!-- Source Selection -->
+            <div class="form-group">
+                <label class="form-label" id="lbl-src">主体 (Source)</label>
+                <select class="form-select" id="rule-src"></select>
+            </div>
+
+            <!-- Target Selection (Supports Multiple) -->
+            <div class="form-group">
+                <label class="form-label" id="lbl-tgt">目标 (Target) - 按住Ctrl/Cmd多选</label>
+                <select class="form-select" id="rule-tgt" multiple size="4" style="height: 100px;"></select>
+                <div style="font-size:11px; color:#64748b; margin-top:4px;">当类型为“依赖”时，多选代表“依赖其中之一 (OR)”关系</div>
+            </div>
+
+        </div>
+        <div class="modal-foot"><button class="btn btn-primary" onclick="saveRule()">保存</button></div>
+    </div>
+</div>
+
+<!-- 4. Product Modal -->
+<div class="mask" id="modal-prod">
+    <div class="modal">
+        <div class="modal-head"><span id="prod-modal-title">新建产品线</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
+        <div class="modal-body">
+            <div class="form-group"><label class="form-label">产品名称</label><input class="form-input" id="prod-name"></div>
+            <div class="form-group"><label class="form-label">代码 (Code)</label><input class="form-input" id="prod-code"></div>
+            <div class="form-group"><label class="form-label">图标 (Emoji)</label><input class="form-input" id="prod-icon" value="📦"></div>
+        </div>
+        <div class="modal-foot"><button class="btn btn-primary" onclick="saveProduct()">保存</button></div>
+    </div>
+</div>
+
+<!-- 5. SKU Modal -->
+<div class="mask" id="modal-sku">
+    <div class="modal">
+        <div class="modal-head"><span id="sku-modal-title">新建 SKU</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
+        <div class="modal-body">
+            <div class="form-group"><label class="form-label">SKU 名称</label><input class="form-input" id="sku-name"></div>
+            
+            <div class="form-group">
+                <label class="form-label">营销描述 (Description)</label>
+                <div style="display:flex; gap:8px;">
+                    <input class="form-input" id="sku-desc" placeholder="一句话卖点...">
+                    <button class="btn btn-ai" onclick="generateSkuDesc()" title="AI 智能润色">✨</button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">多重定价 (Pricing)</label>
+                <div id="sku-pricing-container"></div>
+                <button class="btn btn-outline btn-sm" onclick="addPricingRow()" style="margin-top:8px;">+ 添加价格方案</button>
+            </div>
+
+            <div class="form-group"><label class="form-label">类型</label>
+                <select class="form-select" id="sku-type" onchange="toggleSkuLevel()">
+                    <option value="PLAN">版本 (Plan)</option>
+                    <option value="ADDON">增值包 (Add-on)</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="sku-level-group">
+                <label class="form-label">版本级别 (Level)</label>
+                <input type="number" class="form-input" id="sku-level" placeholder="1 (Low) -> 10 (High)" value="1">
+            </div>
+        </div>
+        <div class="modal-foot"><button class="btn btn-primary" onclick="saveSku()">保存</button></div>
+    </div>
+</div>
+
+<!-- 6. Tenant Modal -->
+<div class="mask" id="modal-new-t">
+    <div class="modal">
+        <div class="modal-head"><span id="tenant-modal-title">签约新客户</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
+        <div class="modal-body">
+            <div class="form-group"><label class="form-label">企业名称</label><input class="form-input" id="new-t-name"></div>
+            <div id="new-t-initial-setup">
+                <div class="form-group"><label class="form-label">首购产品</label><select class="form-select" id="new-t-prod" onchange="updateSkuOptions()"></select></div>
+                <div class="form-group"><label class="form-label">选择 SKU</label><select class="form-select" id="new-t-sku"></select></div>
+            </div>
+        </div>
+        <div class="modal-foot"><button class="btn btn-primary" onclick="saveNewTenant()">保存</button></div>
+    </div>
+</div>
+
+<!-- 7. Sub Modal -->
+<div class="mask" id="modal-sub">
+    <div class="modal">
+        <div class="modal-head"><span>权益变更</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
+        <div class="modal-body">
+            <div class="form-group"><label class="form-label">席位</label><input type="number" class="form-input" id="sub-seats"></div>
+            <div class="form-group"><label class="form-label">状态</label><select class="form-select" id="sub-status"><option value="Active">Active</option><option value="Suspended">Suspended</option></select></div>
+        </div>
+        <div class="modal-foot"><button class="btn btn-primary" onclick="saveSub()">保存</button></div>
+    </div>
+</div>
+
+<!-- 8. Add Subscription to Existing Tenant Modal -->
+<div class="mask" id="modal-add-sub-to-tenant">
+    <div class="modal">
+        <div class="modal-head"><span>增购产品</span><span style="cursor:pointer" onclick="closeModals()">✕</span></div>
+        <div class="modal-body">
+            <div class="form-group"><label class="form-label">客户名称</label><input class="form-input" id="add-sub-tenant-name" disabled style="background:#f1f5f9;"></div>
+            <div class="form-group"><label class="form-label">选择产品</label><select class="form-select" id="add-sub-prod" onchange="updateAddSubSkuOptions()"></select></div>
+            <div class="form-group"><label class="form-label">选择 SKU</label><select class="form-select" id="add-sub-sku"></select></div>
+            <div class="form-group"><label class="form-label">席位</label><input type="number" class="form-input" id="add-sub-seats" value="10"></div>
+        </div>
+        <div class="modal-foot"><button class="btn btn-primary" onclick="saveAddSubToTenant()">确认增购</button></div>
+    </div>
+</div>
+
+
+<!-- Add-on Drawer -->
+<div class="drawer" id="drawer">
+    <div style="padding:20px; border-bottom:1px solid #e2e8f0; font-weight:600; display:flex; justify-content:space-between;">
+        <span id="drawer-title">配置 Add-on</span><span style="cursor:pointer" onclick="closeDrawer()">✕</span>
+    </div>
+    <div style="flex:1; overflow-y:auto; padding:0;" id="drawer-list"></div>
+    <div style="padding:20px; border-top:1px solid #e2e8f0; text-align:right;">
+        <button class="btn btn-primary" onclick="closeDrawer()">完成配置</button>
+    </div>
+</div>
+<div class="mask" id="drawer-overlay" onclick="closeDrawer()" style="z-index:150;"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
