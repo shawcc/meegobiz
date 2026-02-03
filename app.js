@@ -376,7 +376,7 @@ const TENANT_PAGE_SIZE = 12;
 function route(view) {
     // Clean up UI state
     closeModals();
-    if(document.getElementById('drawer').classList.contains('open')) {
+    if(document.getElementById('drawer')) {
         closeDrawer();
     }
 
@@ -1636,9 +1636,10 @@ function toggleAddonEnt(cid, val, type) {
     // Don't redraw drawer entirely to keep focus for inputs, maybe just update state
 }
 function closeDrawer() {
-    document.getElementById('drawer').classList.remove('open');
-    setTimeout(()=>document.getElementById('drawer-overlay').style.display='none',300);
-    render();
+    const d = document.getElementById('drawer');
+    const o = document.getElementById('drawer-overlay');
+    if(d) d.classList.remove('open');
+    if(o) setTimeout(()=>o.style.display='none',300);
 }
 
 // --- NEW: Add Subscription to Existing Tenant ---
