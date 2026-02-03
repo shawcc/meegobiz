@@ -1,6 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <path d="M16 2 L28 9 V23 L16 30 L4 23 V9 Z" fill="#10b981" />
-  <path d="M16 2 L16 16 L28 9" fill="none" stroke="#0f172a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-  <path d="M16 16 L4 9" fill="none" stroke="#0f172a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-  <path d="M16 16 V30" fill="none" stroke="#0f172a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+  <g fill="#2563eb">
+    <!-- Top Left: Circle -->
+    <circle cx="10" cy="10" r="8" />
+    
+    <!-- Top Right: Pill -->
+    <rect x="22" y="2" width="24" height="16" rx="8" />
+    
+    <!-- Bottom Left: Pill -->
+    <rect x="2" y="22" width="24" height="16" rx="8" />
+    
+    <!-- Bottom Right: Diamond (Rounded) -->
+    <!-- Center of diamond area is approx x=34, y=30. Width 16. -->
+    <rect x="30" y="26" width="16" height="16" rx="4" transform="rotate(45 38 34)" />
+  </g>
 </svg>
