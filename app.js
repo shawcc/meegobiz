@@ -895,9 +895,8 @@ function renderGuide(c, h, ha) {
             <div class="guide-box">
                 <p class="guide-text">决定了权益购买后在哪里生效：</p>
                 <ul style="padding-left:20px; color:#475569; font-size:14px;">
-                    <li><span class="tag tag-orange">WORKSPACE</span> <strong>工作区级</strong>：仅在特定的项目/空间内生效（如：甘特图、需求管理）。</li>
-                    <li><span class="tag tag-blue">TENANT</span> <strong>租户级</strong>：购买后全公司/全租户所有成员可用（如：SSO、企业品牌定制）。</li>
-                    <li><span class="tag tag-purple">GLOBAL</span> <strong>全域级 (跨工作区)</strong>：购买了某个权益后，租户下的**所有工作区**都能使用该功能（无需逐个分配）。</li>
+                    <li><span class="tag tag-orange">WORKSPACE</span> <strong>工作区级</strong>：仅在特定的项目/空间内生效，适合按需购买的能力（如：高级报表、甘特图）。</li>
+                    <li><span class="tag tag-blue">TENANT</span> <strong>租户级</strong>：购买后全公司/全租户所有成员可用，适合平台级通用能力（如：SSO、企业品牌定制、IP白名单）。</li>
                 </ul>
             </div>
         </div>
@@ -1422,6 +1421,14 @@ function openModal(type, id = null) {
         // V30: Type Select
         const typeSel = document.getElementById('cap-type');
         if (typeSel) typeSel.value = item.type || 'BOOL';
+
+        // Update Scope Options (Removed GLOBAL)
+        const scopeSel = document.getElementById('cap-scope');
+        scopeSel.innerHTML = `
+            <option value="WORKSPACE">工作区级 (Workspace)</option>
+            <option value="TENANT">租户级 (Tenant)</option>
+        `;
+        scopeSel.value = item.scope;
 
         // V33: Generate checkboxes for products with Category Inputs
         const prodContainer = document.getElementById('cap-prods-container');
