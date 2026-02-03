@@ -38,7 +38,7 @@ async function generateAiFeatures() {
     btn.disabled = true; btn.innerText = "生成中...";
     loader.style.display = 'block';
 
-    const prompt = `Generate JSON features for SaaS topic "${topic}". Return ONLY a JSON array with objects having "name" (technical feature name) and "owner" (team name). Generate 5 items. Respond in Chinese where appropriate. Do not wrap in markdown code blocks.`;
+    const prompt = `Generate JSON features for SaaS topic "${topic}". Return ONLY a JSON array with objects having "name" (technical feature name), "id" (short english id, snake_case, start with 'feat_', e.g. 'feat_user_mgmt'), and "owner" (team name). Generate 5 items. Respond in Chinese for name and owner. Do not wrap in markdown code blocks.`;
     
     const result = await callAI(prompt);
     
@@ -47,7 +47,9 @@ async function generateAiFeatures() {
             const cleanJson = result.replace(/```json|```/g, '').trim();
             const newFeats = JSON.parse(cleanJson);
             newFeats.forEach(f => {
-                features.push({ id: 'feat_ai_' + Math.floor(Math.random()*10000), name: f.name, owner: f.owner });
+                // Use AI provided ID if available, otherwise fallback to random but cleaner format
+                const finalId = f.id || ('feat_' + Math.floor(Math.random()*10000));
+                features.push({ id: finalId, name: f.name, owner: f.owner });
             });
             saveData();
             closeModals();
