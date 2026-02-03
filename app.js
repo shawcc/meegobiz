@@ -148,7 +148,7 @@ const defaults = {
 { "id": "c1764582876851", "name": "自定义团队", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "管理与控制", "p_meego_ipd": "管理与控制", "p_meego_ltc": "管理与控制" }, "type": "BOOL" },
 { "id": "c1764582901677", "name": "席位分组管理", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "管理与控制", "p_meego_ipd": "管理与控制", "p_meego_ltc": "管理与控制" }, "type": "BOOL" },
 { "id": "c1764582937003", "name": "页面水印", "scope": "TENANT", "fid": "", "categoryMap": { "p_basic": "管理与控制" }, "type": "BOOL" },
-{ "id": "c1764582972083", "name": "应用飞书访问策略管控", "scope": "TENANT", "fid": "", "categoryMap": { "p_basic": "管理与控制" }, "type": "BOOL" },
+{ "id": "c1764582972083", "name": "应用访问策略管控", "scope": "TENANT", "fid": "", "categoryMap": { "p_basic": "管理与控制" }, "type": "BOOL" },
 { "id": "c1764582992964", "name": "复合子段子字段查看权限", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "管理与控制", "p_meego_ipd": "管理与控制", "p_meego_ltc": "管理与控制" }, "type": "BOOL" },
 { "id": "c1764588578413", "name": "高级多语言支持", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "工作协同", "p_meego_ipd": "工作协同", "p_meego_ltc": "工作协同" }, "type": "BOOL" },
 { "id": "c1764588599288", "name": "空间基准时区", "scope": "WORKSPACE", "fid": "", "categoryMap": { "p_meego_prj": "工作协同", "p_meego_ipd": "工作协同", "p_meego_ltc": "工作协同" }, "type": "BOOL" },
