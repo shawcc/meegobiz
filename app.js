@@ -425,6 +425,7 @@ function render() {
     if(currView === 'products') renderProducts(c, h, ha);
     if(currView === 'sku_studio') renderSkuStudio(c, h, ha);
     if(currView === 'ents') renderEnts(c, h, ha);
+    if(currView === 'usage') renderUsage(c, h, ha);
     if(currView === 'guide') renderGuide(c, h, ha);
     if(currView === 'dashboard') renderDashboard(c, h, ha);
 }
@@ -980,45 +981,8 @@ function renderEnts(c, h, ha) {
     h.innerText = '客户权益 (Entitlements)';
     
     // --- New Capability Usage Stats ---
-    const capStats = {};
-    tenants.forEach(t => {
-        t.subs.forEach(sub => {
-            if(sub.status !== 'Active') return;
-            const sku = skus.find(s => s.id === sub.skuId);
-            if(sku && sku.ents) {
-                Object.keys(sku.ents).forEach(cid => {
-                    if(!capStats[cid]) capStats[cid] = 0;
-                    capStats[cid]++;
-                });
-            }
-        });
-    });
-
-    const sortedCaps = Object.keys(capStats)
-        .map(cid => {
-            const cap = capabilities.find(x => x.id === cid);
-            return { id: cid, name: cap ? cap.name : cid, count: capStats[cid] };
-        })
-        .sort((a,b) => b.count - a.count)
-        .slice(0, 10); // Top 10
-
-    const statsHtml = `
-    <div class="card" style="margin-bottom:24px; display:flex; flex-direction:column;">
-        <div class="card-header">🔥 热门能力使用排行 (Top Active Capabilities)</div>
-        <div class="card-body" style="padding:0; overflow-x:auto;">
-            <div style="display:flex; gap:16px; padding:20px;">
-                ${sortedCaps.length > 0 ? sortedCaps.map((c, i) => `
-                <div style="min-width:140px; padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; display:flex; flex-direction:column; align-items:center; text-align:center;">
-                    <div style="font-size:20px; font-weight:700; color:${i<3 ? '#2563eb' : '#475569'}">${c.count}</div>
-                    <div style="font-size:11px; color:#64748b; margin-top:4px;">租户已启用</div>
-                    <div style="font-size:13px; font-weight:600; margin-top:8px; color:#1e293b; height:36px; display:flex; align-items:center; justify-content:center; line-height:1.2;">${c.name}</div>
-                </div>
-                `).join('') : '<div style="color:#94a3b8; width:100%; text-align:center;">暂无活跃订阅数据</div>'}
-            </div>
-        </div>
-    </div>
-    `;
-
+    // Moved to independent 'Usage' tab as per user request
+    
     // Header Actions: Search + Add
     ha.style.display = 'flex';
     ha.style.gap = '10px';
@@ -1045,7 +1009,7 @@ function renderEnts(c, h, ha) {
     const pageData = filtered.slice(start, start + TENANT_PAGE_SIZE);
 
     // 3. Render Table
-    let html = statsHtml + `
+    let html = `
     <div class="card" style="padding:0; overflow:hidden; border:1px solid #e2e8f0; border-radius:8px;">
         <table style="width:100%; text-align:left;">
             <thead>
