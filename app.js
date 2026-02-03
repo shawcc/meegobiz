@@ -1308,7 +1308,7 @@ function initMultiselect(containerId, options, selectedValues, onChange) {
             <div class="multiselect-options">
                 ${options.map(opt => `
                     <div class="multiselect-option" onclick="toggleOption('${containerId}', '${opt.value}')">
-                        <input type="checkbox" value="${opt.value}" ${selectedValues.includes(opt.value) ? 'checked' : ''}>
+                        <input type="checkbox" value="${opt.value}" ${selectedValues.includes(opt.value) ? 'checked' : ''} onclick="event.stopPropagation(); toggleOption('${containerId}', '${opt.value}'); return false;"> 
                         <span>${opt.label}</span>
                     </div>
                 `).join('')}
@@ -1317,11 +1317,16 @@ function initMultiselect(containerId, options, selectedValues, onChange) {
     `;
     updateMultiselectDisplay(containerId, options);
     
-    // Close when clicking outside
+    // Close when clicking outside - FIXED EVENT BUBBLING
     document.addEventListener('click', function(e) {
         if (!container.contains(e.target)) {
             container.querySelector('.multiselect-options').classList.remove('show');
         }
+    });
+
+    // Prevent closing when clicking inside
+    container.addEventListener('click', function(e){
+        e.stopPropagation();
     });
 }
 
@@ -1332,15 +1337,18 @@ function toggleMultiselect(id) {
 
 function toggleOption(containerId, value) {
     const container = document.getElementById(containerId);
+    // Find checkbox by value (using CSS selector escaping if needed, but simple values are fine)
     const cb = container.querySelector(`input[value="${value}"]`);
-    cb.checked = !cb.checked;
-    
-    // Update display
-    const options = Array.from(container.querySelectorAll('.multiselect-option')).map(opt => ({
-        value: opt.querySelector('input').value,
-        label: opt.querySelector('span').innerText
-    }));
-    updateMultiselectDisplay(containerId, options);
+    if(cb) {
+        cb.checked = !cb.checked;
+        
+        // Update display
+        const options = Array.from(container.querySelectorAll('.multiselect-option')).map(opt => ({
+            value: opt.querySelector('input').value,
+            label: opt.querySelector('span').innerText
+        }));
+        updateMultiselectDisplay(containerId, options);
+    }
 }
 
 function updateMultiselectDisplay(containerId, options) {
