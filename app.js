@@ -477,7 +477,12 @@ function renderDashboard(c, h, ha) {
 
     // Track capability usage count based on active subs
     const capUsage = {}; 
-    capabilities.forEach(c => capUsage[c.id] = 0);
+    const capRevenueImpact = {}; // Total MRR of SKUs containing this cap
+    
+    capabilities.forEach(c => {
+        capUsage[c.id] = 0;
+        capRevenueImpact[c.id] = 0;
+    });
 
     tenants.forEach(t => {
         t.subs.forEach(sub => {
@@ -489,32 +494,43 @@ function renderDashboard(c, h, ha) {
             if(sku) {
                 if(prodCounts[sku.pid] !== undefined) prodCounts[sku.pid]++;
                 
+                let subMrr = 0;
                 // MRR Calc
                 if(sku.pricing) {
                     sku.pricing.forEach(p => {
                         let price = p.price || 0;
-                        if(p.mode === 'PER_USER_MO') estMRR += price * sub.seats;
-                        if(p.mode === 'FLAT_MO') estMRR += price;
-                        if(p.mode === 'PER_USER_YR') estMRR += (price * sub.seats) / 12;
-                        if(p.mode === 'FLAT_YR') estMRR += price / 12;
+                        if(p.mode === 'PER_USER_MO') subMrr += price * sub.seats;
+                        if(p.mode === 'FLAT_MO') subMrr += price;
+                        if(p.mode === 'PER_USER_YR') subMrr += (price * sub.seats) / 12;
+                        if(p.mode === 'FLAT_YR') subMrr += price / 12;
                     });
                 }
+                estMRR += subMrr;
 
-                // Cap Usage
+                // Cap Usage & Revenue Impact
                 if(sku.ents) {
                     Object.keys(sku.ents).forEach(cid => {
-                        if(capUsage[cid] !== undefined) capUsage[cid]++;
+                        if(capUsage[cid] !== undefined) {
+                            capUsage[cid]++;
+                            capRevenueImpact[cid] += subMrr;
+                        }
                     });
                 }
             }
         });
     });
 
-    // Sort Top Capabilities
+    // Sort Top Capabilities by Revenue Contribution (Weighted Value)
     const topCaps = Object.keys(capUsage)
-        .map(cid => ({ id: cid, count: capUsage[cid], obj: capabilities.find(x=>x.id===cid) }))
-        .sort((a,b) => b.count - a.count)
-        .slice(0, 5);
+        .map(cid => ({ 
+            id: cid, 
+            count: capUsage[cid], 
+            revenue: capRevenueImpact[cid],
+            obj: capabilities.find(x=>x.id===cid) 
+        }))
+        .filter(item => item.count > 0) // Only show active ones
+        .sort((a,b) => b.revenue - a.revenue) // Sort by revenue contribution
+        .slice(0, 8);
 
 
     // --- 2. Configuration Metrics (Design Time) ---
@@ -615,7 +631,7 @@ function renderDashboard(c, h, ha) {
         </div>
 
         <!-- Section 3: Analysis Charts -->
-        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:24px;">
+        <div style="display:grid; grid-template-columns: 3fr 2fr; gap:24px;">
             
             <!-- Left: Product Distribution -->
             <div class="card" style="margin-bottom:0; display:flex; flex-direction:column;">
@@ -642,23 +658,46 @@ function renderDashboard(c, h, ha) {
                 </div>
             </div>
 
-            <!-- Right: Top Capabilities -->
+            <!-- Right: Capability Value Analysis -->
             <div class="card" style="margin-bottom:0; display:flex; flex-direction:column;">
-                <div class="card-header">🔥 热门能力 (Top Capabilities)</div>
-                <div class="card-body" style="flex:1;">
-                    <div style="font-size:12px; color:#64748b; margin-bottom:12px;">被激活租户覆盖最多的商业能力</div>
-                    ${topCaps.map((item, idx) => `
-                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding-bottom:12px; border-bottom:1px dashed #f1f5f9;">
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <div style="width:20px; height:20px; background:${idx===0?'#fef9c3':'#f1f5f9'}; color:${idx===0?'#b45309':'#64748b'}; border-radius:50%; font-size:11px; display:flex; align-items:center; justify-content:center; font-weight:700;">${idx+1}</div>
-                                <div>
-                                    <div style="font-size:13px; font-weight:600; color:#334155;">${item.obj ? item.obj.name : item.id}</div>
-                                    <div style="font-size:10px; color:#94a3b8;">${item.obj ? item.obj.scope : ''}</div>
-                                </div>
-                            </div>
-                            <div style="font-size:13px; font-weight:700; color:#059669;">${item.count}</div>
-                        </div>
-                    `).join('')}
+                <div class="card-header">
+                    <div>� 能力价值贡献 (Value Contribution)</div>
+                </div>
+                <div class="card-body" style="flex:1; padding:0;">
+                    <table style="width:100%; text-align:left;">
+                        <thead style="background:#f8fafc; font-size:11px; color:#64748b;">
+                            <tr>
+                                <th style="padding:10px 16px; border-bottom:1px solid #f1f5f9;">能力名称</th>
+                                <th style="padding:10px 16px; border-bottom:1px solid #f1f5f9; text-align:right;">渗透率 (Penetration)</th>
+                                <th style="padding:10px 16px; border-bottom:1px solid #f1f5f9; text-align:right;">营收贡献 (Rev Impact)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${topCaps.map((item, idx) => {
+                                const penPct = totalTenants > 0 ? Math.round((item.count / totalTenants) * 100) : 0;
+                                const revPct = estMRR > 0 ? Math.round((item.revenue / estMRR) * 100) : 0;
+                                return `
+                                <tr style="border-bottom:1px dashed #f1f5f9;">
+                                    <td style="padding:12px 16px;">
+                                        <div style="font-size:13px; font-weight:600; color:#334155;">${item.obj ? item.obj.name : item.id}</div>
+                                        <div style="font-size:10px; color:#94a3b8;">${item.obj ? item.obj.scope : ''}</div>
+                                    </td>
+                                    <td style="padding:12px 16px; text-align:right;">
+                                        <div style="font-weight:600; color:#3b82f6;">${penPct}%</div>
+                                        <div style="font-size:10px; color:#94a3b8;">${item.count} tenants</div>
+                                    </td>
+                                    <td style="padding:12px 16px; text-align:right;">
+                                        <div style="font-weight:600; color:#10b981;">¥${item.revenue.toFixed(0)}</div>
+                                        <div style="font-size:10px; color:#94a3b8;">${revPct}% coverage</div>
+                                    </td>
+                                </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                    <div style="padding:12px; font-size:11px; color:#94a3b8; text-align:center; background:#f8fafc; border-top:1px solid #f1f5f9;">
+                        * 营收贡献计算方式：该能力所在 SKU 的 MRR 总和
+                    </div>
                 </div>
             </div>
 
