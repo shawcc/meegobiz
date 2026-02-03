@@ -602,6 +602,48 @@ function renderGuide(c, h, ha) {
                 </ul>
             </div>
         </div>
+
+        <div class="guide-section">
+            <div class="guide-title">4. 实体关系图谱 (Entity Relationships)</div>
+            <div class="guide-box">
+                <p class="guide-text">各层级对象之间的映射关系定义了系统的灵活性：</p>
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:20px; margin-top:20px;">
+                    <!-- Relation 1 -->
+                    <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:16px; text-align:center;">
+                        <div style="font-size:12px; color:#64748b; margin-bottom:8px;">技术与商业的桥梁</div>
+                        <div style="font-weight:700; color:#1e293b; display:flex; justify-content:center; align-items:center; gap:8px;">
+                            Feature <span style="color:#8b5cf6; background:#f3f4f6; padding:2px 6px; border-radius:4px; font-size:10px;">1:N</span> Capability
+                        </div>
+                        <div style="font-size:12px; color:#64748b; margin-top:8px; line-height:1.4; text-align:left;">
+                            <strong>复用与拆分：</strong> 一个底层技术特性（如“云存储”）可以被包装成多个不同规格的商业能力（如“10GB存储”、“1TB存储”）。
+                        </div>
+                    </div>
+
+                    <!-- Relation 2 -->
+                    <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:16px; text-align:center;">
+                        <div style="font-size:12px; color:#64748b; margin-bottom:8px;">灵活组装 (Matrix)</div>
+                        <div style="font-weight:700; color:#1e293b; display:flex; justify-content:center; align-items:center; gap:8px;">
+                            Capability <span style="color:#2563eb; background:#eff6ff; padding:2px 6px; border-radius:4px; font-size:10px;">M:N</span> SKU
+                        </div>
+                        <div style="font-size:12px; color:#64748b; margin-top:8px; line-height:1.4; text-align:left;">
+                            <strong>套餐组合：</strong> 能力原子是“配料”，SKU是“菜单”。同一个能力（如“SSO登录”）可以出现在“专业版”和“旗舰版”等多个SKU中。
+                        </div>
+                    </div>
+
+                    <!-- Relation 3 -->
+                    <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:16px; text-align:center;">
+                        <div style="font-size:12px; color:#64748b; margin-bottom:8px;">订阅履约</div>
+                        <div style="font-weight:700; color:#1e293b; display:flex; justify-content:center; align-items:center; gap:8px;">
+                            SKU <span style="color:#10b981; background:#ecfdf5; padding:2px 6px; border-radius:4px; font-size:10px;">M:N</span> Tenant
+                        </div>
+                        <div style="font-size:12px; color:#64748b; margin-top:8px; line-height:1.4; text-align:left;">
+                            <strong>多重订阅：</strong> 一个客户可以订阅多个产品（SKU）。例如，同时购买“项目管理-专业版”和“自动化-增值包”。
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     `;
 }
 
