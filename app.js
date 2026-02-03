@@ -1,51 +1,38 @@
-// ================== 0. API CONFIG (BYOK) ==================
+// ================== 0. API CONFIG (DeepSeek) ==================
 
-function getApiKey() {
-    return localStorage.getItem('saas_gemini_key') || "";
-}
+const DEEPSEEK_API_KEY = "sk-d4c05ae9e12248a2833e98e121120e9a";
+const API_URL = "https://api.deepseek.com/chat/completions";
 
-function saveSettings() {
-    const key = document.getElementById('settings-api-key').value;
-    localStorage.setItem('saas_gemini_key', key);
-    closeModals();
-    alert("API Key 已保存！");
-}
-
-async function callGemini(prompt) {
-    const apiKey = getApiKey();
-    
-    if (!apiKey) {
-        console.log("Using Mock AI because no API Key provided.");
-        return new Promise(resolve => {
-            setTimeout(() => {
-                if (prompt.includes("Generate JSON features")) {
-                    resolve(`[
-                        {"name": "AI 智能排程", "owner": "Algo Team"},
-                        {"name": "多语言支持", "owner": "I18n Team"},
-                        {"name": "移动端适配", "owner": "Mobile Team"},
-                        {"name": "实时协作同步", "owner": "RTS Team"},
-                        {"name": "三方应用集成", "owner": "Open Platform"}
-                    ]`);
-                } else if (prompt.includes("marketing description")) {
-                    resolve("赋能企业数字化转型，解锁无限增长潜能。");
-                } else {
-                    resolve("AI Response Simulated (No Key Configured)");
-                }
-            }, 1000);
-        });
+async function callAI(prompt) {
+    if (!DEEPSEEK_API_KEY) {
+        alert("API Key 未配置");
+        return null;
     }
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+        const response = await fetch(API_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${DEEPSEEK_API_KEY}`
+            },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
+                model: "deepseek-chat",
+                messages: [
+                    { role: "system", content: "You are a helpful SaaS product manager assistant." },
+                    { role: "user", content: prompt }
+                ],
+                temperature: 0.7
             })
         });
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error?.message || "API request failed");
+        }
+
         const data = await response.json();
-        if(data.error) throw new Error(data.error.message);
-        return data.candidates[0].content.parts[0].text;
+        return data.choices[0].message.content;
     } catch (error) {
         console.error("AI Error:", error);
         alert("AI 调用失败: " + error.message);
@@ -63,9 +50,9 @@ async function generateAiFeatures() {
     btn.disabled = true; btn.innerText = "生成中...";
     loader.style.display = 'block';
 
-    const prompt = `Generate JSON features for SaaS topic "${topic}". Return ONLY a JSON array with objects having "name" (technical feature name) and "owner" (team name). Generate 5 items. Respond in Chinese where appropriate.`;
+    const prompt = `Generate JSON features for SaaS topic "${topic}". Return ONLY a JSON array with objects having "name" (technical feature name) and "owner" (team name). Generate 5 items. Respond in Chinese where appropriate. Do not wrap in markdown code blocks.`;
     
-    const result = await callGemini(prompt);
+    const result = await callAI(prompt);
     
     if(result) {
         try {
@@ -79,7 +66,8 @@ async function generateAiFeatures() {
             render();
             alert(`成功生成 ${newFeats.length} 个新特性！`);
         } catch (e) {
-            alert("生成结果解析失败");
+            console.error(e);
+            alert("生成结果解析失败，请重试");
         }
     }
     
@@ -99,7 +87,7 @@ async function generateSkuDesc() {
     btn.innerText = "⏳";
     
     const prompt = `Write a short, attractive Chinese marketing description (max 25 chars) for a SaaS plan named '${name}' for product '${prod.name}'.`;
-    const desc = await callGemini(prompt);
+    const desc = await callAI(prompt);
     
     if (desc) {
         document.getElementById('sku-desc').value = desc.trim();
@@ -1434,9 +1422,6 @@ function openModal(type, id = null) {
             document.getElementById('new-t-prod').innerHTML = products.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
             updateSkuOptions();
         }
-    }
-    if(type === 'settings') {
-        document.getElementById('settings-api-key').value = getApiKey();
     }
     if(type === 'add-sub-to-tenant') {
         const t = tenants.find(x => x.id === id);
