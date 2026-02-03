@@ -812,8 +812,8 @@ function renderGuide(c, h, ha) {
 function renderFeatures(c, h, ha) {
     h.innerText = '产品功能 (Features)';
     ha.innerHTML = `<button class="btn btn-ai" onclick="openModal('ai-feature')" style="margin-right:10px;">✨ AI 批量生成</button><button class="btn btn-primary" onclick="openModal('feature')">+ 注册 Feature</button>`;
-    c.innerHTML = `<div class="card"><table><thead><tr><th>ID</th><th>名称</th><th>Owner</th><th>操作</th></tr></thead><tbody>
-        ${features.map(f => `<tr><td><code class="code-pill">${f.id}</code></td><td>${f.name}</td><td>${f.owner}</td><td><button class="btn btn-icon" onclick="openModal('feature','${f.id}')">✏️</button><button class="btn btn-icon danger" onclick="deleteItem('feature','${f.id}')">🗑️</button></td></tr>`).join('')}
+    c.innerHTML = `<div class="card"><table><thead><tr><th>ID</th><th>名称</th><th>需求单</th><th>Owner</th><th>操作</th></tr></thead><tbody>
+        ${features.map(f => `<tr><td><code class="code-pill">${f.id}</code></td><td>${f.name}</td><td>${f.reqId ? `<span class="tag tag-blue">📄 ${f.reqId}</span>` : '<span style="color:#cbd5e1">-</span>'}</td><td>${f.owner}</td><td><button class="btn btn-icon" onclick="openModal('feature','${f.id}')">✏️</button><button class="btn btn-icon danger" onclick="deleteItem('feature','${f.id}')">🗑️</button></td></tr>`).join('')}
     </tbody></table></div>`;
 }
 
@@ -979,6 +979,46 @@ function renderSkuStudio(c, h, ha) {
 function renderEnts(c, h, ha) {
     h.innerText = '客户权益 (Entitlements)';
     
+    // --- New Capability Usage Stats ---
+    const capStats = {};
+    tenants.forEach(t => {
+        t.subs.forEach(sub => {
+            if(sub.status !== 'Active') return;
+            const sku = skus.find(s => s.id === sub.skuId);
+            if(sku && sku.ents) {
+                Object.keys(sku.ents).forEach(cid => {
+                    if(!capStats[cid]) capStats[cid] = 0;
+                    capStats[cid]++;
+                });
+            }
+        });
+    });
+
+    const sortedCaps = Object.keys(capStats)
+        .map(cid => {
+            const cap = capabilities.find(x => x.id === cid);
+            return { id: cid, name: cap ? cap.name : cid, count: capStats[cid] };
+        })
+        .sort((a,b) => b.count - a.count)
+        .slice(0, 10); // Top 10
+
+    const statsHtml = `
+    <div class="card" style="margin-bottom:24px; display:flex; flex-direction:column;">
+        <div class="card-header">🔥 热门能力使用排行 (Top Active Capabilities)</div>
+        <div class="card-body" style="padding:0; overflow-x:auto;">
+            <div style="display:flex; gap:16px; padding:20px;">
+                ${sortedCaps.length > 0 ? sortedCaps.map((c, i) => `
+                <div style="min-width:140px; padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; display:flex; flex-direction:column; align-items:center; text-align:center;">
+                    <div style="font-size:20px; font-weight:700; color:${i<3 ? '#2563eb' : '#475569'}">${c.count}</div>
+                    <div style="font-size:11px; color:#64748b; margin-top:4px;">租户已启用</div>
+                    <div style="font-size:13px; font-weight:600; margin-top:8px; color:#1e293b; height:36px; display:flex; align-items:center; justify-content:center; line-height:1.2;">${c.name}</div>
+                </div>
+                `).join('') : '<div style="color:#94a3b8; width:100%; text-align:center;">暂无活跃订阅数据</div>'}
+            </div>
+        </div>
+    </div>
+    `;
+
     // Header Actions: Search + Add
     ha.style.display = 'flex';
     ha.style.gap = '10px';
@@ -1005,7 +1045,7 @@ function renderEnts(c, h, ha) {
     const pageData = filtered.slice(start, start + TENANT_PAGE_SIZE);
 
     // 3. Render Table
-    let html = `
+    let html = statsHtml + `
     <div class="card" style="padding:0; overflow:hidden; border:1px solid #e2e8f0; border-radius:8px;">
         <table style="width:100%; text-align:left;">
             <thead>
@@ -1232,11 +1272,12 @@ function openModal(type, id = null) {
     }
     if(type === 'feature') {
         document.getElementById('feat-modal-title').innerText = isEdit ? '编辑 Feature' : '注册 Feature';
-        const item = isEdit ? features.find(x=>x.id===id) : {id:'', name:'', owner:''};
+        const item = isEdit ? features.find(x=>x.id===id) : {id:'', name:'', owner:'', reqId:''};
         document.getElementById('feat-id').value = item.id;
         document.getElementById('feat-id').disabled = isEdit;
         document.getElementById('feat-name').value = item.name;
         document.getElementById('feat-owner').value = item.owner;
+        document.getElementById('feat-req-id').value = item.reqId || '';
     }
     if(type === 'rule') {
         document.getElementById('rule-modal-title').innerText = isEdit ? '编辑规则' : '新建规则';
@@ -1337,12 +1378,13 @@ function saveFeature() {
     const id = document.getElementById('feat-id').value;
     const name = document.getElementById('feat-name').value;
     const owner = document.getElementById('feat-owner').value;
+    const reqId = document.getElementById('feat-req-id').value;
     if(name) {
         if(editingId) {
-            const item = features.find(x=>x.id===editingId); item.name = name; item.owner = owner;
+            const item = features.find(x=>x.id===editingId); item.name = name; item.owner = owner; item.reqId = reqId;
         } else {
             if(!id) return alert('ID required');
-            features.push({id,name,owner});
+            features.push({id,name,owner,reqId});
         }
         saveData(); closeModals(); render(); 
     }
