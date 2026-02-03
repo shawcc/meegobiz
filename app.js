@@ -1331,7 +1331,12 @@ function openModal(type, id = null) {
         document.getElementById('cap-name').value = item.name;
         document.getElementById('cap-scope').value = item.scope;
         
-        // Populate Features (Multiselect)
+        // Populate Features (Multiselect) - REBUILD SELECT ELEMENT TO ENSURE CLEAN STATE
+        const parent = document.getElementById('cap-feat').parentElement;
+        parent.innerHTML = `<label class="form-label">绑定底层 Feature (支持多选)</label>
+                            <select class="form-select" id="cap-feat" multiple size="5" style="height: 120px; padding: 4px;"></select>
+                            <div style="font-size:11px; color:#64748b; margin-top:4px;">按住 Ctrl (Windows) 或 Cmd (Mac) 可多选</div>`;
+        
         const fSelect = document.getElementById('cap-feat');
         fSelect.innerHTML = features.map(f => {
             // Support legacy single 'fid' or new 'fids' array
