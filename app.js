@@ -928,7 +928,18 @@ function renderCaps(c, h, ha) {
     ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('cap')">+ 定义 Capability</button>`;
     c.innerHTML = `<div class="card"><table><thead><tr><th>名称</th><th>分类</th><th>作用域</th><th>类型</th><th>绑定Feature</th><th>适用产品</th><th>操作</th></tr></thead><tbody>
         ${capabilities.map(cap => {
-            const f = features.find(x => x.id === cap.fid);
+            // Support legacy single fid or new fids array
+            let featNames = '-';
+            if(cap.fids && cap.fids.length > 0) {
+                featNames = cap.fids.map(fid => {
+                    const f = features.find(x => x.id === fid);
+                    return f ? f.name : fid;
+                }).join(', ');
+            } else if (cap.fid) {
+                const f = features.find(x => x.id === cap.fid);
+                featNames = f ? f.name : cap.fid;
+            }
+
             const prodBadges = (cap.prods || []).map(pid => {
                 const p = products.find(x=>x.id===pid);
                 if (!p) return '';
@@ -944,7 +955,7 @@ function renderCaps(c, h, ha) {
                 <td>${cap.categoryMap ? '按产品配置' : '-'}</td>
                 <td><span class="tag ${cap.scope==='TENANT'?'tag-blue':'tag-orange'}">${cap.scope}</span></td>
                 <td>${typeTag}</td>
-                <td>${f ? f.name : '-'}</td>
+                <td><div style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${featNames}">${featNames}</div></td>
                 <td>${prodBadges}</td>
                 <td><button class="btn btn-icon" onclick="openModal('cap','${cap.id}')">✏️</button><button class="btn btn-icon danger" onclick="deleteItem('cap','${cap.id}')">🗑️</button></td>
             </tr>`;
@@ -1315,11 +1326,21 @@ function openModal(type, id = null) {
     const isEdit = !!id;
     
     if(type === 'cap') {
-        const item = id ? capabilities.find(x=>x.id===id) : {name:'', scope:'WORKSPACE', fid:'', categoryMap:{}, type: 'BOOL'};
+        const item = id ? capabilities.find(x=>x.id===id) : {name:'', scope:'WORKSPACE', fids:[], categoryMap:{}, type: 'BOOL'};
         document.getElementById('cap-modal-title').innerText = isEdit ? '编辑 Capability' : '定义 Capability';
         document.getElementById('cap-name').value = item.name;
         document.getElementById('cap-scope').value = item.scope;
-        document.getElementById('cap-feat').innerHTML = '<option value="">(None)</option>' + features.map(f=>`<option value="${f.id}" ${f.id===item.fid?'selected':''}>${f.name}</option>`).join('');
+        
+        // Populate Features (Multiselect)
+        const fSelect = document.getElementById('cap-feat');
+        fSelect.innerHTML = features.map(f => {
+            // Support legacy single 'fid' or new 'fids' array
+            let isSelected = false;
+            if(item.fids && Array.isArray(item.fids)) isSelected = item.fids.includes(f.id);
+            else if(item.fid && item.fid === f.id) isSelected = true;
+            
+            return `<option value="${f.id}" ${isSelected?'selected':''}>${f.name}</option>`;
+        }).join('');
         
         // V30: Type Select
         const typeSel = document.getElementById('cap-type');
@@ -1465,8 +1486,14 @@ function saveFeature() {
 function saveCap() {
     const name = document.getElementById('cap-name').value;
     const scope = document.getElementById('cap-scope').value;
-    const fid = document.getElementById('cap-feat').value;
     const type = document.getElementById('cap-type').value;
+    
+    // Collect multiselect features
+    const fSelect = document.getElementById('cap-feat');
+    const fids = [];
+    for(let i=0; i<fSelect.options.length; i++) {
+        if(fSelect.options[i].selected) fids.push(fSelect.options[i].value);
+    }
     
     // V33: Collect Category Map
     const categoryMap = {};
@@ -1481,9 +1508,11 @@ function saveCap() {
     
     if(name) {
         if(editingId) {
-            const c = capabilities.find(x=>x.id===editingId); c.name=name; c.scope=scope; c.fid=fid; c.categoryMap=categoryMap; c.type=type;
+            const c = capabilities.find(x=>x.id===editingId); 
+            c.name=name; c.scope=scope; c.fids=fids; delete c.fid; // Migrate to fids
+            c.categoryMap=categoryMap; c.type=type;
         } else {
-            capabilities.push({id:'c'+Date.now(), name, scope, fid, categoryMap, type});
+            capabilities.push({id:'c'+Date.now(), name, scope, fids, categoryMap, type});
         }
         saveData(); closeModals(); render();
     }
