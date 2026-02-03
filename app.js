@@ -706,6 +706,127 @@ function renderDashboard(c, h, ha) {
     `;
 }
 
+function renderUsage(c, h, ha) {
+    h.innerText = '能力用量分析 (Capability Usage)';
+    ha.innerHTML = `<button class="btn btn-outline" onclick="exportUsageData()">📤 导出报表</button>`;
+
+    // 1. Calculate Data
+    const capData = capabilities.map(cap => {
+        let tenantCount = 0;
+        let revenueImpact = 0;
+        const linkedSkus = [];
+        const activeTenants = [];
+
+        // Find SKUs containing this cap
+        skus.forEach(s => {
+            if (s.ents && s.ents[cap.id]) {
+                linkedSkus.push(s);
+            }
+        });
+
+        // Calculate Tenant Usage & Revenue
+        tenants.forEach(t => {
+            let hasCap = false;
+            t.subs.forEach(sub => {
+                if (sub.status !== 'Active') return;
+                const sku = skus.find(k => k.id === sub.skuId);
+                if (sku && sku.ents && sku.ents[cap.id]) {
+                    hasCap = true;
+                    // Rough revenue attribution: Total SKU Price
+                    if(sku.pricing) {
+                        sku.pricing.forEach(p => {
+                            let price = p.price || 0;
+                            if(p.mode === 'PER_USER_MO') revenueImpact += price * sub.seats;
+                            if(p.mode === 'FLAT_MO') revenueImpact += price;
+                            if(p.mode === 'PER_USER_YR') revenueImpact += (price * sub.seats) / 12;
+                            if(p.mode === 'FLAT_YR') revenueImpact += price / 12;
+                        });
+                    }
+                }
+            });
+            if (hasCap) {
+                tenantCount++;
+                activeTenants.push(t.name);
+            }
+        });
+
+        return {
+            ...cap,
+            tenantCount,
+            revenueImpact,
+            linkedSkus,
+            activeTenants
+        };
+    });
+
+    // Sort by Tenant Count desc
+    capData.sort((a, b) => b.tenantCount - a.tenantCount);
+
+    // 2. Render Table
+    c.innerHTML = `
+        <div class="guide-box" style="margin-bottom:24px; border-left:4px solid #3b82f6;">
+            <div style="font-size:13px; color:#475569;">
+                <strong>💡 定价参考：</strong> 此报表展示了每个商业能力的实际覆盖率与营收关联度。
+                <br>• <strong>高覆盖、低营收</strong>：核心基础能力，考虑是否应该作为付费点。
+                <br>• <strong>低覆盖、高营收</strong>：高价值增值能力，考虑推广或拆分独立售卖。
+            </div>
+        </div>
+
+        <div class="card" style="padding:0; overflow:hidden;">
+            <table style="width:100%;">
+                <thead>
+                    <tr style="background:#f8fafc; border-bottom:1px solid #e2e8f0; font-size:12px; color:#64748b;">
+                        <th style="padding:12px 24px;">能力名称 (Capability)</th>
+                        <th style="padding:12px 24px;">作用域</th>
+                        <th style="padding:12px 24px;">所属 SKU (Distribution)</th>
+                        <th style="padding:12px 24px; text-align:right;">活跃租户数 (Adoption)</th>
+                        <th style="padding:12px 24px; text-align:right;">关联营收 (Rev Impact)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${capData.map(d => {
+                        const skuBadges = d.linkedSkus.map(s => {
+                            const isAddon = s.type === 'ADDON';
+                            return `<span class="tag ${isAddon ? 'tag-orange' : 'tag-blue'}" title="${s.name}">${isAddon ? 'Addon' : 'Plan'}</span>`;
+                        }).slice(0, 3).join('');
+                        const moreSku = d.linkedSkus.length > 3 ? `<span style="font-size:10px; color:#94a3b8;">+${d.linkedSkus.length - 3}</span>` : '';
+
+                        return `
+                        <tr style="border-bottom:1px solid #f1f5f9;">
+                            <td style="padding:16px 24px;">
+                                <div style="font-weight:600; color:#1e293b;">${d.name}</div>
+                                <div style="font-size:11px; color:#94a3b8; font-family:monospace;">${d.id}</div>
+                            </td>
+                            <td style="padding:16px 24px;">
+                                <span class="tag tag-gray">${d.scope}</span>
+                            </td>
+                            <td style="padding:16px 24px;">
+                                <div style="display:flex; align-items:center; gap:4px;">
+                                    ${skuBadges || '<span style="color:#cbd5e1">-</span>'} ${moreSku}
+                                </div>
+                                <div style="font-size:11px; color:#64748b; margin-top:4px;">In ${d.linkedSkus.length} SKUs</div>
+                            </td>
+                            <td style="padding:16px 24px; text-align:right;">
+                                <div style="font-weight:600; font-size:15px;">${d.tenantCount}</div>
+                                <div style="font-size:11px; color:#94a3b8;">${tenants.length > 0 ? Math.round(d.tenantCount / tenants.length * 100) : 0}% Pen.</div>
+                            </td>
+                            <td style="padding:16px 24px; text-align:right;">
+                                <div style="font-weight:600; color:#10b981;">¥${d.revenueImpact.toFixed(0)}</div>
+                                <div style="font-size:11px; color:#94a3b8;">Monthly</div>
+                            </td>
+                        </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function exportUsageData() {
+    alert("导出功能开发中...");
+}
+
 function renderGuide(c, h, ha) {
     h.innerText = '配置指南';
     c.innerHTML = `
@@ -1311,6 +1432,13 @@ function openModal(type, id = null) {
     if(type === 'settings') {
         document.getElementById('settings-api-key').value = getApiKey();
     }
+    if(type === 'add-sub-to-tenant') {
+        const t = tenants.find(x => x.id === id);
+        document.getElementById('add-sub-tenant-name').value = t.name;
+        const pSel = document.getElementById('add-sub-prod');
+        pSel.innerHTML = products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        updateAddSubSkuOptions();
+    }
 }
 
 function toggleSkuLevel() {
@@ -1534,16 +1662,7 @@ function closeDrawer() {
 
 // --- NEW: Add Subscription to Existing Tenant ---
 function openAddSubModal(tid) {
-    const t = tenants.find(x => x.id === tid);
-    editingId = tid; // Use editingId to store tenant ID
-    document.getElementById('add-sub-tenant-name').value = t.name;
-    
-    // Populate Products
-    const pSel = document.getElementById('add-sub-prod');
-    pSel.innerHTML = products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-    updateAddSubSkuOptions();
-    
-    openModal('add-sub-to-tenant');
+    openModal('add-sub-to-tenant', tid);
 }
 
 function updateAddSubSkuOptions() {
