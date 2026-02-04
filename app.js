@@ -815,34 +815,57 @@ function renderGuide(c, h, ha) {
     h.innerText = '配置指南';
     c.innerHTML = `
         <div class="guide-section">
-            <div class="guide-title">1. 核心概念与流转 (Concept Map)</div>
+            <div class="guide-title">1. 核心概念体系 (Core Concepts)</div>
             <div class="guide-box">
-                <p class="guide-text">MeegoBiz 实现了 <strong>“产研商业解耦”</strong> 的核心理念。研发专注于技术实现，运营专注于商业包装。</p>
+                <p class="guide-text">MeegoBiz 围绕以下 7 大核心概念构建，实现了技术、商业与客户视角的完美融合：</p>
                 
-                <div class="concept-map">
-                    <div class="map-step">
-                        <div class="map-icon">🔧</div>
-                        <div class="map-role">研发 R&D</div>
-                        <div class="map-title">Feature</div>
-                        <div class="map-desc">原子化的技术特性<br>(代码实现、开关、埋点)</div>
+                <div class="concept-grid-new" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; margin-top:20px;">
+                    <!-- Layer 1: Production -->
+                    <div class="concept-card-new" style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px;">
+                        <div style="font-weight:700; color:#334155; margin-bottom:12px; border-bottom:2px solid #3b82f6; display:inline-block;">1. 生产定义层</div>
+                        <div style="display:flex; flex-direction:column; gap:12px;">
+                            <div class="term-box">
+                                <strong>🔧 Feature</strong>
+                                <div style="font-size:11px; color:#64748b;">研发视角的最小技术单元 (如: "Gantt View Component")</div>
+                            </div>
+                            <div style="text-align:center; color:#cbd5e1;">⬇️ 包装</div>
+                            <div class="term-box">
+                                <strong>📦 Capability</strong>
+                                <div style="font-size:11px; color:#64748b;">运营视角的商业能力原子，定义了定价属性与作用域 (如: "企业甘特图-全域版")</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="map-step">
-                        <div class="map-icon">📦</div>
-                        <div class="map-role">运营 Ops</div>
-                        <div class="map-title">Capability</div>
-                        <div class="map-desc">商业能力定义<br>(对Feature进行包装、分类、定价属性)</div>
+
+                    <!-- Layer 2: Packaging & Sales -->
+                    <div class="concept-card-new" style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px;">
+                        <div style="font-weight:700; color:#334155; margin-bottom:12px; border-bottom:2px solid #8b5cf6; display:inline-block;">2. 商业包装层</div>
+                        <div style="display:flex; flex-direction:column; gap:12px;">
+                            <div class="term-box">
+                                <strong>🏷️ Product & Plan</strong>
+                                <div style="font-size:11px; color:#64748b;">Product是产品线 (如 Meego Project)；Plan是具体售卖版本 (如 Pro版, Ent版)，是权益的集合容器。</div>
+                            </div>
+                            <div style="text-align:center; color:#cbd5e1;">⬆️ 映射 (Mapping)</div>
+                            <div class="term-box">
+                                <strong>💳 Mall SKU</strong>
+                                <div style="font-size:11px; color:#64748b;">外部交易系统的商品ID (如 Stripe Price ID)，是连接资金流与权益流的纽带。</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="map-step">
-                        <div class="map-icon">🏷️</div>
-                        <div class="map-role">销售 Sales</div>
-                        <div class="map-title">Product & SKU</div>
-                        <div class="map-desc">售卖单元组合<br>(版本Plan、增值包Add-on、定价策略)</div>
-                    </div>
-                    <div class="map-step">
-                        <div class="map-icon">👥</div>
-                        <div class="map-role">客户 Customer</div>
-                        <div class="map-title">Tenant Entitlement</div>
-                        <div class="map-desc">权益履约与生效<br>(订阅记录、有效期、席位)</div>
+
+                    <!-- Layer 3: Consumption -->
+                    <div class="concept-card-new" style="background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:8px;">
+                        <div style="font-weight:700; color:#334155; margin-bottom:12px; border-bottom:2px solid #10b981; display:inline-block;">3. 客户履约层</div>
+                        <div style="display:flex; flex-direction:column; gap:12px;">
+                            <div class="term-box">
+                                <strong>🏢 Tenant</strong>
+                                <div style="font-size:11px; color:#64748b;">购买主体 (租户)，权益履约的根节点。租户级能力 (Scope=TENANT) 在此生效。</div>
+                            </div>
+                            <div style="text-align:center; color:#cbd5e1;">⬇️ 授权</div>
+                            <div class="term-box">
+                                <strong>📂 Workspace</strong>
+                                <div style="font-size:11px; color:#64748b;">实际作业空间 (项目)。工作区级能力 (Scope=WORKSPACE) 在此被实例化和鉴权。</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
