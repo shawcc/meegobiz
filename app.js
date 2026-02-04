@@ -1080,7 +1080,7 @@ function renderProducts(c, h, ha) {
 function renderSkuStudio(c, h, ha) {
     const prod = products.find(p => p.id === activeProdId);
     h.innerHTML = `<span style="color:#64748b; cursor:pointer" onclick="route('products')">产品管理</span> / ${prod.name}`;
-    ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('sku')">+ SKU</button>`;
+    ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('sku')">+ Plan/Add-on</button>`;
 
     let plans = skus.filter(s => s.pid === activeProdId && s.type === 'PLAN');
     plans.sort((a,b) => (a.level || 0) - (b.level || 0));
@@ -1591,7 +1591,7 @@ function openModal(type, id = null) {
         document.getElementById('prod-icon').value = item.icon;
     }
     if(type === 'sku') {
-        document.getElementById('sku-modal-title').innerText = isEdit ? '编辑 SKU' : '新建 SKU';
+        document.getElementById('sku-modal-title').innerText = isEdit ? '编辑 Plan/Add-on' : '新建 Plan/Add-on';
         const item = isEdit ? skus.find(x=>x.id===id) : {name:'', type:'PLAN', desc:'', pricing:[], level:1, mallMap:{}};
         document.getElementById('sku-name').value = item.name;
         document.getElementById('sku-desc').value = item.desc || '';

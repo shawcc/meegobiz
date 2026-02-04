@@ -154,8 +154,39 @@ tr:last-child td { border-bottom: none; }
 .rel-badge.depend { background: #fffbeb; color: #b45309; border: 1px solid #fcd34d; }
 .rel-badge.required { background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; margin-top: 4px; }
 
-/* Matrix */
-.matrix-container { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; background: white; margin-bottom: 30px;}
+/* Matrix Table */
+.matrix-container {
+    overflow-x: auto;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin-bottom: 30px;
+}
+.matrix-container table {
+    width: 100%;
+    border-collapse: separate; /* Changed from collapse to separate for sticky */
+    border-spacing: 0;
+}
+.matrix-container th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #f8fafc;
+}
+/* Fix sticky column header overlap */
+.matrix-container th:first-child {
+    left: 0;
+    z-index: 20;
+    border-right: 1px solid var(--border);
+}
+/* Fix sticky row headers */
+.matrix-container td:first-child {
+    position: sticky;
+    left: 0;
+    background: #fff;
+    z-index: 5;
+    border-right: 1px solid var(--border);
+}
 .matrix-cell { text-align: center; cursor: pointer; transition: 0.2s; position: relative; }
 .matrix-cell:hover { background: #f8fafc; }
 
