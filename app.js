@@ -319,6 +319,10 @@ function migrateData(data) {
 }
 
 function initData() {
+    // FORCE RESET to load new features from defaults
+    // In production, we would merge, but for this demo, we want to see the new data immediately.
+    resetData(false); 
+    
     if(localStorage.getItem('saas_demo_v37')) {
         let saved = JSON.parse(localStorage.getItem('saas_demo_v37'));
         saved = migrateData(saved);
