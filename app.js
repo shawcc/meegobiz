@@ -854,17 +854,6 @@ function renderGuide(c, h, ha) {
                 <p class="guide-text">各层级对象之间的映射关系定义了系统的灵活性：</p>
                 
                 <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:20px; margin-top:20px;">
-                    <!-- Relation 0: Mall Mapping -->
-                    <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:16px; text-align:center;">
-                        <div style="font-size:12px; color:#64748b; margin-bottom:8px;">交易映射</div>
-                        <div style="font-weight:700; color:#1e293b; display:flex; justify-content:center; align-items:center; gap:8px;">
-                            Mall SKU <span style="color:#059669; background:#ecfdf5; padding:2px 6px; border-radius:4px; font-size:10px;">M:1</span> Internal SKU
-                        </div>
-                        <div style="font-size:12px; color:#64748b; margin-top:8px; line-height:1.4; text-align:left;">
-                            <strong>多渠道映射：</strong> 支持同时映射多个外部商城的商品 ID (如 BOSS, Stripe)。无论用户从哪个渠道购买，都能触发同一个内部 SKU。
-                        </div>
-                    </div>
-
                     <!-- Relation 1 -->
                     <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:16px; text-align:center;">
                         <div style="font-size:12px; color:#64748b; margin-bottom:8px;">技术与商业的桥梁</div>
@@ -895,6 +884,17 @@ function renderGuide(c, h, ha) {
                         </div>
                         <div style="font-size:12px; color:#64748b; margin-top:8px; line-height:1.4; text-align:left;">
                             <strong>多重订阅：</strong> 一个客户可以订阅多个产品（SKU）。例如，同时购买“项目管理-专业版”和“自动化-增值包”。
+                        </div>
+                    </div>
+
+                    <!-- Relation 0: Mall Mapping -->
+                    <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:16px; text-align:center;">
+                        <div style="font-size:12px; color:#64748b; margin-bottom:8px;">交易映射</div>
+                        <div style="font-weight:700; color:#1e293b; display:flex; justify-content:center; align-items:center; gap:8px;">
+                            Mall SKU <span style="color:#059669; background:#ecfdf5; padding:2px 6px; border-radius:4px; font-size:10px;">M:1</span> Internal SKU
+                        </div>
+                        <div style="font-size:12px; color:#64748b; margin-top:8px; line-height:1.4; text-align:left;">
+                            <strong>多渠道映射：</strong> 支持同时映射多个外部商城的商品 ID (如 BOSS, Stripe)。无论用户从哪个渠道购买，都能触发同一个内部 SKU。
                         </div>
                     </div>
                 </div>
