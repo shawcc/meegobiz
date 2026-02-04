@@ -256,20 +256,16 @@ th:hover .sku-actions { visibility: visible; }
     height: 16px;
 }
 
-.sku-link-badge {
+.sku-mall-id-badge {
     display: inline-block;
     font-size: 11px;
-    color: #2563eb;
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    border-radius: 12px;
-    padding: 2px 8px;
-    text-decoration: none;
+    color: #475569;
+    background: #f1f5f9;
+    border: 1px dashed #94a3b8;
+    border-radius: 4px;
+    padding: 2px 6px;
     margin-top: 4px;
-}
-.sku-link-badge:hover {
-    background: #dbeafe;
-    text-decoration: underline;
+    font-family: monospace;
 }
 
 /* Modals & Drawers */
