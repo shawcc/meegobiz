@@ -101,6 +101,19 @@ tr:last-child td { border-bottom: none; }
 .tag-gray { background: #f3f4f6; color: #4b5563; }
 
 /* --- Guide Styles (NEW) --- */
+.term-box {
+    background: white;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.term-box strong {
+    color: #1e293b;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 4px;
+}
 .guide-hero { background: white; border-radius: 8px; padding: 32px; margin-bottom: 24px; border: 1px solid var(--border); }
 .guide-section { margin-bottom: 40px; }
 .guide-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
