@@ -851,53 +851,65 @@ function renderGuide(c, h, ha) {
         <div class="guide-section">
             <div class="guide-title">2. 实体关系图谱 (Entity Relationships)</div>
             <div class="guide-box">
-                <p class="guide-text">各层级对象之间的映射关系定义了系统的灵活性：</p>
+                <p class="guide-text">系统架构分为“产品定义”与“商业履约”两个维度的链路：</p>
                 
-                <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:20px; margin-top:20px;">
+                <!-- Group 1: Product Definition -->
+                <div style="margin-top:24px; margin-bottom:12px; font-size:13px; font-weight:700; color:#475569; border-left:3px solid #3b82f6; padding-left:10px;">
+                    🅰️ 产品价值定义链 (Product Definition Pipeline)
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
                     <!-- Relation 1 -->
                     <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:16px; text-align:center;">
-                        <div style="font-size:12px; color:#64748b; margin-bottom:8px;">技术与商业的桥梁</div>
+                        <div style="font-size:12px; color:#64748b; margin-bottom:8px;">1. 原子包装</div>
                         <div style="font-weight:700; color:#1e293b; display:flex; justify-content:center; align-items:center; gap:8px;">
                             Feature <span style="color:#8b5cf6; background:#f3f4f6; padding:2px 6px; border-radius:4px; font-size:10px;">1:N</span> Capability
                         </div>
                         <div style="font-size:12px; color:#64748b; margin-top:8px; line-height:1.4; text-align:left;">
-                            <strong>复用与拆分：</strong> 一个底层技术特性（如“云存储”）可以被包装成多个不同规格的商业能力（如“10GB存储”、“1TB存储”）。
+                            <strong>技术 -> 商业：</strong> 研发开发的底层功能 (Feature) 被包装成可售卖的商业能力 (Capability)。
                         </div>
                     </div>
 
                     <!-- Relation 2 -->
                     <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:16px; text-align:center;">
-                        <div style="font-size:12px; color:#64748b; margin-bottom:8px;">灵活组装 (Matrix)</div>
+                        <div style="font-size:12px; color:#64748b; margin-bottom:8px;">2. 版本定义</div>
                         <div style="font-weight:700; color:#1e293b; display:flex; justify-content:center; align-items:center; gap:8px;">
-                            Capability <span style="color:#2563eb; background:#eff6ff; padding:2px 6px; border-radius:4px; font-size:10px;">M:N</span> SKU
+                            Capability <span style="color:#2563eb; background:#eff6ff; padding:2px 6px; border-radius:4px; font-size:10px;">M:N</span> Product Plan
                         </div>
                         <div style="font-size:12px; color:#64748b; margin-top:8px; line-height:1.4; text-align:left;">
-                            <strong>套餐组合：</strong> 能力原子是“配料”，SKU是“菜单”。同一个能力（如“SSO登录”）可以出现在“专业版”和“旗舰版”等多个SKU中。
-                        </div>
-                    </div>
-
-                    <!-- Relation 3 -->
-                    <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:16px; text-align:center;">
-                        <div style="font-size:12px; color:#64748b; margin-bottom:8px;">订阅履约</div>
-                        <div style="font-weight:700; color:#1e293b; display:flex; justify-content:center; align-items:center; gap:8px;">
-                            SKU <span style="color:#10b981; background:#ecfdf5; padding:2px 6px; border-radius:4px; font-size:10px;">M:N</span> Tenant
-                        </div>
-                        <div style="font-size:12px; color:#64748b; margin-top:8px; line-height:1.4; text-align:left;">
-                            <strong>多重订阅：</strong> 一个客户可以订阅多个产品（SKU）。例如，同时购买“项目管理-专业版”和“自动化-增值包”。
-                        </div>
-                    </div>
-
-                    <!-- Relation 0: Mall Mapping -->
-                    <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:16px; text-align:center;">
-                        <div style="font-size:12px; color:#64748b; margin-bottom:8px;">交易映射</div>
-                        <div style="font-weight:700; color:#1e293b; display:flex; justify-content:center; align-items:center; gap:8px;">
-                            Mall SKU <span style="color:#059669; background:#ecfdf5; padding:2px 6px; border-radius:4px; font-size:10px;">M:1</span> Internal SKU
-                        </div>
-                        <div style="font-size:12px; color:#64748b; margin-top:8px; line-height:1.4; text-align:left;">
-                            <strong>多渠道映射：</strong> 支持同时映射多个外部商城的商品 ID (如 BOSS, Stripe)。无论用户从哪个渠道购买，都能触发同一个内部 SKU。
+                            <strong>商业 -> 产品：</strong> 不同的能力组合构成了不同的产品版本 (Internal Plan)，例如“专业版”、“旗舰版”。
                         </div>
                     </div>
                 </div>
+
+                <!-- Group 2: Commercial Fulfillment -->
+                <div style="margin-top:24px; margin-bottom:12px; font-size:13px; font-weight:700; color:#475569; border-left:3px solid #10b981; padding-left:10px;">
+                    🅱️ 商业交易履约链 (Commercial Fulfillment Pipeline)
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                    <!-- Relation 3 -->
+                    <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:16px; text-align:center;">
+                        <div style="font-size:12px; color:#64748b; margin-bottom:8px;">3. 交易映射</div>
+                        <div style="font-weight:700; color:#1e293b; display:flex; justify-content:center; align-items:center; gap:8px;">
+                            Mall SKU <span style="color:#059669; background:#ecfdf5; padding:2px 6px; border-radius:4px; font-size:10px;">M:1</span> Product Plan
+                        </div>
+                        <div style="font-size:12px; color:#64748b; margin-top:8px; line-height:1.4; text-align:left;">
+                            <strong>销售 -> 内部：</strong> 外部商城(BOSS/Stripe)的售卖单元 (SKU) 映射到内部定义的产品版本。支持多渠道 SKU 对应同一产品。
+                        </div>
+                    </div>
+
+                    <!-- Relation 4 -->
+                    <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:16px; text-align:center;">
+                        <div style="font-size:12px; color:#64748b; margin-bottom:8px;">4. 权益履约</div>
+                        <div style="font-weight:700; color:#1e293b; display:flex; justify-content:center; align-items:center; gap:8px;">
+                            Product Plan <span style="color:#10b981; background:#ecfdf5; padding:2px 6px; border-radius:4px; font-size:10px;">M:N</span> Tenant
+                        </div>
+                        <div style="font-size:12px; color:#64748b; margin-top:8px; line-height:1.4; text-align:left;">
+                            <strong>产品 -> 客户：</strong> 客户(Tenant)通过订阅获得产品版本的使用权，系统根据产品定义的 Capability 集合自动下发权益。
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
             </div>
         </div>
 
