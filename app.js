@@ -590,7 +590,7 @@ function renderDashboard(c, h, ha) {
                     <div style="display:flex; justify-content:space-between; align-items:start;">
                         <div>
                             <div style="font-size:24px; font-weight:700; color:#1e293b;">${totalPlans + totalAddons}</div>
-                            <div style="font-size:12px; color:#64748b;">SKUs (Saleable)</div>
+                            <div style="font-size:12px; color:#64748b;">Plans & Add-ons (Saleable)</div>
                         </div>
                         <span style="font-size:20px;">🏷️</span>
                     </div>
