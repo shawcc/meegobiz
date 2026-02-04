@@ -241,9 +241,11 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">商城 SKU ID (Mall Mapping)</label>
-                <input class="form-input" id="sku-mall-id" placeholder="例如: sku_premium_2024_v1">
-                <div style="font-size:11px; color:#64748b; margin-top:4px;">用于接收商城订单 Webhook 时，自动匹配并开通对应权益</div>
+                <label class="form-label">商城映射 (Mall Mappings)</label>
+                <div id="sku-mall-container">
+                    <!-- Dynamic Rows -->
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="addMallRow()" style="margin-top:8px;">+ 添加商城映射</button>
             </div>
         </div>
         <div class="modal-foot"><button class="btn btn-primary" onclick="saveSku()">保存</button></div>

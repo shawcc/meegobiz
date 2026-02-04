@@ -858,10 +858,10 @@ function renderGuide(c, h, ha) {
                     <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:16px; text-align:center;">
                         <div style="font-size:12px; color:#64748b; margin-bottom:8px;">交易映射</div>
                         <div style="font-weight:700; color:#1e293b; display:flex; justify-content:center; align-items:center; gap:8px;">
-                            Mall SKU <span style="color:#059669; background:#ecfdf5; padding:2px 6px; border-radius:4px; font-size:10px;">1:1</span> Internal SKU
+                            Mall SKU <span style="color:#059669; background:#ecfdf5; padding:2px 6px; border-radius:4px; font-size:10px;">M:1</span> Internal SKU
                         </div>
                         <div style="font-size:12px; color:#64748b; margin-top:8px; line-height:1.4; text-align:left;">
-                            <strong>连接器：</strong> 商城中的商品 ID (如 Stripe Price ID) 映射到系统内部 SKU。当外部订单完成时，自动触发内部权益开通。
+                            <strong>多渠道映射：</strong> 支持同时映射多个外部商城的商品 ID (如 BOSS, Stripe)。无论用户从哪个渠道购买，都能触发同一个内部 SKU。
                         </div>
                     </div>
 
@@ -1051,7 +1051,7 @@ function renderSkuStudio(c, h, ha) {
                         <div class="sku-header-content">
                             <div class="sku-header-row">${p.name} <div class="sku-actions"><button class="btn btn-icon" onclick="openModal('sku','${p.id}')">✏️</button><button class="btn btn-icon danger" onclick="deleteItem('sku','${p.id}')">🗑️</button></div></div>
                             <div class="sku-price-tag">${getPriceDisplay(p)}</div>
-                            ${p.mallId ? `<div class="sku-mall-id-badge" title="Mall SKU ID">🆔 ${p.mallId}</div>` : ''}
+                            ${renderMallBadges(p.mallMap)}
                             ${reqs.map(r => `<div class="rel-badge required">⬅️ 被依赖: ${resolveName(r.src, 'COMMERCIAL')}</div>`).join('')}
                         </div>
                     </th>`;
@@ -1093,7 +1093,7 @@ function renderSkuStudio(c, h, ha) {
                 <div class="addon-card-actions"><button class="btn btn-icon" onclick="openModal('sku','${a.id}')">✏️</button><button class="btn btn-icon danger" onclick="deleteItem('sku','${a.id}')">🗑️</button></div>
                 <div style="font-size:13px; color:#64748b; margin-top:4px;">${a.desc || '暂无描述'}</div>
                 <div class="addon-price">${getPriceDisplay(a)}</div>
-                ${a.mallId ? `<div class="sku-mall-id-badge" title="Mall SKU ID">🆔 ${a.mallId}</div>` : ''}
+                ${renderMallBadges(a.mallMap)}
                 <div style="font-size:12px; color:#94a3b8; margin-top:8px;">包含 ${Object.keys(a.ents).length} 项能力</div>
                 ${deps.map(d => `<div class="rel-badge depend" style="margin-top:8px;">🔗 依赖: ${resolveName(d.tgt, 'COMMERCIAL')}</div>`).join('')}
             </div>
@@ -1390,7 +1390,32 @@ function getMultiselectValues(containerId) {
 // ================== 5. MODAL LOGIC (FULL EDIT SUPPORT) ==================
 
 // V33: Dynamic Pricing Logic
-function addPricingRow(mode='', price='') {
+function renderMallBadges(map) {
+    if(!map || Object.keys(map).length === 0) return '';
+    return Object.keys(map).map(k => `
+        <div class="sku-mall-id-badge" title="${k} SKU ID">
+            <span style="font-weight:600; color:#334155;">${k}:</span> ${map[k]}
+        </div>
+    `).join('');
+}
+
+function addMallRow(mall='', id='') {
+    const container = document.getElementById('sku-mall-container');
+    const div = document.createElement('div');
+    div.className = 'mall-row';
+    div.style.cssText = 'display:flex; gap:8px; margin-bottom:8px;';
+    div.innerHTML = `
+        <select class="form-select" style="width:120px;">
+            <option value="BOSS" ${mall==='BOSS'?'selected':''}>BOSS</option>
+            <option value="Stripe" ${mall==='Stripe'?'selected':''}>Stripe</option>
+        </select>
+        <input type="text" class="form-input" style="flex:1" placeholder="External ID" value="${id}">
+        <button class="btn btn-icon danger" onclick="this.parentElement.remove()">✕</button>
+    `;
+    container.appendChild(div);
+}
+
+function openModal(type, id = null) {
     const container = document.getElementById('sku-pricing-container');
     const div = document.createElement('div');
     div.className = 'pricing-row';
@@ -1507,13 +1532,26 @@ function openModal(type, id = null) {
     }
     if(type === 'sku') {
         document.getElementById('sku-modal-title').innerText = isEdit ? '编辑 SKU' : '新建 SKU';
-        const item = isEdit ? skus.find(x=>x.id===id) : {name:'', type:'PLAN', desc:'', pricing:[], level:1, mallId:''};
+        const item = isEdit ? skus.find(x=>x.id===id) : {name:'', type:'PLAN', desc:'', pricing:[], level:1, mallMap:{}};
         document.getElementById('sku-name').value = item.name;
         document.getElementById('sku-desc').value = item.desc || '';
         document.getElementById('sku-level').value = item.level || 1;
         document.getElementById('sku-type').value = item.type;
         document.getElementById('sku-type').disabled = isEdit;
-        document.getElementById('sku-mall-id').value = item.mallId || ''; // V39: Mall ID
+        
+        // V40: Populate Mall Rows
+        const mContainer = document.getElementById('sku-mall-container');
+        mContainer.innerHTML = '';
+        const map = item.mallMap || {};
+        // Legacy support
+        if(item.mallId && Object.keys(map).length===0) {
+            addMallRow('BOSS', item.mallId); // Default legacy to BOSS
+        } else if (Object.keys(map).length > 0) {
+            Object.keys(map).forEach(k => addMallRow(k, map[k]));
+        } else {
+            addMallRow(); // Empty row
+        }
+        
         toggleSkuLevel();
         
         // V33: Populate Pricing Rows
@@ -1656,7 +1694,15 @@ function saveSku() {
     const type = document.getElementById('sku-type').value;
     const desc = document.getElementById('sku-desc').value;
     const level = parseInt(document.getElementById('sku-level').value) || 1;
-    const mallId = document.getElementById('sku-mall-id').value; // V39
+    
+    // V40: Collect Mall Map
+    const mallMap = {};
+    const mRows = document.querySelectorAll('#sku-mall-container .mall-row');
+    mRows.forEach(row => {
+        const mall = row.querySelector('select').value;
+        const mid = row.querySelector('input').value;
+        if(mall && mid) mallMap[mall] = mid;
+    });
 
     // V33: Collect pricing
     const pricing = [];
@@ -1670,10 +1716,11 @@ function saveSku() {
     if(name) {
         if(editingId) {
             const s = skus.find(x=>x.id===editingId); 
-            s.name=name; s.desc=desc; s.pricing=pricing; s.level=level; s.mallId=mallId;
-            delete s.link; // Cleanup legacy
+            s.name=name; s.desc=desc; s.pricing=pricing; s.level=level; s.mallMap=mallMap;
+            delete s.mallId; // Cleanup legacy V39
+            delete s.link;   // Cleanup legacy V38
         } else {
-            skus.push({id:'s'+Date.now(), pid:activeProdId, type, name, desc, pricing, level, mallId, ents:{}});
+            skus.push({id:'s'+Date.now(), pid:activeProdId, type, name, desc, pricing, level, mallMap, ents:{}});
         }
         saveData(); closeModals(); render();
     }
