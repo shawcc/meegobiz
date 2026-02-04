@@ -853,7 +853,18 @@ function renderGuide(c, h, ha) {
             <div class="guide-box">
                 <p class="guide-text">各层级对象之间的映射关系定义了系统的灵活性：</p>
                 
-                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:20px; margin-top:20px;">
+                <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:20px; margin-top:20px;">
+                    <!-- Relation 0: Mall Mapping -->
+                    <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:16px; text-align:center;">
+                        <div style="font-size:12px; color:#64748b; margin-bottom:8px;">交易映射</div>
+                        <div style="font-weight:700; color:#1e293b; display:flex; justify-content:center; align-items:center; gap:8px;">
+                            Mall SKU <span style="color:#059669; background:#ecfdf5; padding:2px 6px; border-radius:4px; font-size:10px;">1:1</span> Internal SKU
+                        </div>
+                        <div style="font-size:12px; color:#64748b; margin-top:8px; line-height:1.4; text-align:left;">
+                            <strong>连接器：</strong> 商城中的商品 ID (如 Stripe Price ID) 映射到系统内部 SKU。当外部订单完成时，自动触发内部权益开通。
+                        </div>
+                    </div>
+
                     <!-- Relation 1 -->
                     <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:16px; text-align:center;">
                         <div style="font-size:12px; color:#64748b; margin-bottom:8px;">技术与商业的桥梁</div>
