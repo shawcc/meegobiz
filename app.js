@@ -762,7 +762,7 @@ function renderUsage(c, h, ha) {
                     <tr style="background:#f8fafc; border-bottom:1px solid #e2e8f0; font-size:12px; color:#64748b;">
                         <th style="padding:12px 24px;">能力名称 (Capability)</th>
                         <th style="padding:12px 24px;">作用域</th>
-                        <th style="padding:12px 24px;">所属 SKU (Distribution)</th>
+                        <th style="padding:12px 24px;">所属 Plan/Addon (Distribution)</th>
                         <th style="padding:12px 24px; text-align:right;">活跃租户数 (Adoption)</th>
                         <th style="padding:12px 24px; text-align:right;">关联营收 (Rev Impact)</th>
                     </tr>
