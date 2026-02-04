@@ -996,7 +996,7 @@ function renderFeatures(c, h, ha) {
 function renderCaps(c, h, ha) {
     h.innerText = '商业能力 (Capabilities)';
     ha.innerHTML = `<button class="btn btn-primary" onclick="openModal('cap')">+ 定义 Capability</button>`;
-    c.innerHTML = `<div class="card"><table><thead><tr><th>名称</th><th>分类</th><th>作用域</th><th>类型</th><th>绑定Feature</th><th>适用产品</th><th>操作</th></tr></thead><tbody>
+    c.innerHTML = `<div class="card"><table><thead><tr><th>名称</th><th>作用域</th><th>类型</th><th>绑定Feature</th><th>适用产品</th><th>操作</th></tr></thead><tbody>
         ${capabilities.map(cap => {
             // Support legacy single fid or new fids array
             let featNames = '-';
@@ -1022,7 +1022,6 @@ function renderCaps(c, h, ha) {
             
             return `<tr>
                 <td><b>${cap.name}</b></td>
-                <td>${cap.categoryMap ? '按产品配置' : '-'}</td>
                 <td><span class="tag ${cap.scope==='TENANT'?'tag-blue':'tag-orange'}">${cap.scope}</span></td>
                 <td>${typeTag}</td>
                 <td><div style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${featNames}">${featNames}</div></td>
@@ -1692,9 +1691,11 @@ function saveCap() {
     
     // V33: Collect Category Map
     const categoryMap = {};
+    const prods = []; // Also collect prods array for legacy/compatibility
     const checkboxes = document.querySelectorAll('#cap-prods-container input[type="checkbox"]');
     checkboxes.forEach(cb => {
         if (cb.checked) {
+            prods.push(cb.value);
             // Find sibling input for category
             const catInput = cb.parentElement.querySelector('input[type="text"]');
             categoryMap[cb.value] = catInput.value || '基础功能';
@@ -1705,9 +1706,9 @@ function saveCap() {
         if(editingId) {
             const c = capabilities.find(x=>x.id===editingId); 
             c.name=name; c.scope=scope; c.fids=fids; delete c.fid; // Migrate to fids
-            c.categoryMap=categoryMap; c.type=type;
+            c.categoryMap=categoryMap; c.prods=prods; c.type=type;
         } else {
-            capabilities.push({id:'c'+Date.now(), name, scope, fids, categoryMap, type});
+            capabilities.push({id:'c'+Date.now(), name, scope, fids, categoryMap, prods, type});
         }
         saveData(); closeModals(); render();
     }
