@@ -1040,6 +1040,7 @@ function renderSkuStudio(c, h, ha) {
                         <div class="sku-header-content">
                             <div class="sku-header-row">${p.name} <div class="sku-actions"><button class="btn btn-icon" onclick="openModal('sku','${p.id}')">✏️</button><button class="btn btn-icon danger" onclick="deleteItem('sku','${p.id}')">🗑️</button></div></div>
                             <div class="sku-price-tag">${getPriceDisplay(p)}</div>
+                            ${p.link ? `<a href="${p.link}" target="_blank" class="sku-link-badge" style="margin:4px 0; display:inline-block;">🛒 购买链接</a>` : ''}
                             ${reqs.map(r => `<div class="rel-badge required">⬅️ 被依赖: ${resolveName(r.src, 'COMMERCIAL')}</div>`).join('')}
                         </div>
                     </th>`;
@@ -1081,6 +1082,7 @@ function renderSkuStudio(c, h, ha) {
                 <div class="addon-card-actions"><button class="btn btn-icon" onclick="openModal('sku','${a.id}')">✏️</button><button class="btn btn-icon danger" onclick="deleteItem('sku','${a.id}')">🗑️</button></div>
                 <div style="font-size:13px; color:#64748b; margin-top:4px;">${a.desc || '暂无描述'}</div>
                 <div class="addon-price">${getPriceDisplay(a)}</div>
+                ${a.link ? `<a href="${a.link}" target="_blank" class="sku-link-badge">🛒 购买链接</a>` : ''}
                 <div style="font-size:12px; color:#94a3b8; margin-top:8px;">包含 ${Object.keys(a.ents).length} 项能力</div>
                 ${deps.map(d => `<div class="rel-badge depend" style="margin-top:8px;">🔗 依赖: ${resolveName(d.tgt, 'COMMERCIAL')}</div>`).join('')}
             </div>
@@ -1494,12 +1496,13 @@ function openModal(type, id = null) {
     }
     if(type === 'sku') {
         document.getElementById('sku-modal-title').innerText = isEdit ? '编辑 SKU' : '新建 SKU';
-        const item = isEdit ? skus.find(x=>x.id===id) : {name:'', type:'PLAN', desc:'', pricing:[], level:1};
+        const item = isEdit ? skus.find(x=>x.id===id) : {name:'', type:'PLAN', desc:'', pricing:[], level:1, link:''};
         document.getElementById('sku-name').value = item.name;
         document.getElementById('sku-desc').value = item.desc || '';
         document.getElementById('sku-level').value = item.level || 1;
         document.getElementById('sku-type').value = item.type;
         document.getElementById('sku-type').disabled = isEdit;
+        document.getElementById('sku-link').value = item.link || ''; // V38: Checkout Link
         toggleSkuLevel();
         
         // V33: Populate Pricing Rows
@@ -1642,6 +1645,7 @@ function saveSku() {
     const type = document.getElementById('sku-type').value;
     const desc = document.getElementById('sku-desc').value;
     const level = parseInt(document.getElementById('sku-level').value) || 1;
+    const link = document.getElementById('sku-link').value; // V38
 
     // V33: Collect pricing
     const pricing = [];
@@ -1655,12 +1659,18 @@ function saveSku() {
     if(name) {
         if(editingId) {
             const s = skus.find(x=>x.id===editingId); 
-            s.name=name; s.desc=desc; s.pricing=pricing; s.level=level;
+            s.name=name; s.desc=desc; s.pricing=pricing; s.level=level; s.link=link;
         } else {
-            skus.push({id:'s'+Date.now(), pid:activeProdId, type, name, desc, pricing, level, ents:{}});
+            skus.push({id:'s'+Date.now(), pid:activeProdId, type, name, desc, pricing, level, link, ents:{}});
         }
         saveData(); closeModals(); render();
     }
+}
+
+function testSkuLink() {
+    const url = document.getElementById('sku-link').value;
+    if(url) window.open(url, '_blank');
+    else alert('请输入链接');
 }
 function saveNewTenant() {
     const name = document.getElementById('new-t-name').value;

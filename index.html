@@ -239,6 +239,15 @@
                 <label class="form-label">版本级别 (Level)</label>
                 <input type="number" class="form-input" id="sku-level" placeholder="1 (Low) -> 10 (High)" value="1">
             </div>
+
+            <div class="form-group">
+                <label class="form-label">售卖链接 (Checkout URL)</label>
+                <div style="display:flex; gap:8px;">
+                    <input class="form-input" id="sku-link" placeholder="https://buy.stripe.com/..." style="flex:1">
+                    <button class="btn btn-outline" onclick="testSkuLink()" title="测试链接">🔗</button>
+                </div>
+                <div style="font-size:11px; color:#64748b; margin-top:4px;">支付成功后，Webhook 将自动触发权益开通</div>
+            </div>
         </div>
         <div class="modal-foot"><button class="btn btn-primary" onclick="saveSku()">保存</button></div>
     </div>
